@@ -1,4 +1,4 @@
-import Chess from 'chess.js'
+import {Chess} from 'chess.js'
 //import * as Chess from 'chess.js'
 //import {Chess} from '../../../node_modules/chess.js/src/chess';
 import ChessPiece from './chesspiece'
