@@ -230,12 +230,13 @@ class Game {
         } else if ((move.from === 'e1' && move.to === 'c1')) {
             originalPositionOfRook = 'a1'
             newPositionOfRook = 'd1'
-        } else if ((move.from === 'e8' && move.to === 'g8')) {
-            originalPositionOfRook = 'h8'
-            newPositionOfRook = 'f8'
-        } else { // e8 to c8
-            originalPositionOfRook = 'a8'
-            newPositionOfRook = 'd8'
+        } // DONE: changed 8s to 10s
+        else if ((move.from === 'e10' && move.to === 'g10')) {
+            originalPositionOfRook = 'h10'
+            newPositionOfRook = 'f10'
+        } else { // e10 to c10
+            originalPositionOfRook = 'a10'
+            newPositionOfRook = 'd10'
         }   
 
     
@@ -268,8 +269,8 @@ class Game {
     findPiece(board, pieceId) {
         // ChessBoard, String -> [Int, Int]
       //  console.log("piecetofind: " + pieceId)
-        for (var i = 0; i < 10; i++) {
-            for (var j = 0; j < 8; j++) {
+        for (var i = 0; i < 8; i++) {
+            for (var j = 0; j < 10; j++) {
                 if (board[i][j].getPieceIdOnThisSquare() === pieceId) {
                     return [j, i]
                 }
@@ -280,10 +281,10 @@ class Game {
     makeStartingBoard() {
         const backRank = ["rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook"]
         var startingChessBoard = []
-        // Make i < 10 instead of 8 to add 2 rows
-        for (var i = 0; i < 10; i++) {
+        // DONE: CHECK: Make j < 10 instead of 8 to add 2 rows? is it j or i
+        for (var i = 0; i < 8; i++) {
             startingChessBoard.push([])
-            for (var j = 0; j < 8; j++) {
+            for (var j = 0; j < 10; j++) {
                 // j is horizontal
                 // i is vertical
                 const coordinatesOnCanvas = [((j + 1) * 90 + 15), ((i + 1) * 90 + 15)]
