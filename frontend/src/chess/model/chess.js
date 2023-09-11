@@ -211,8 +211,9 @@ class Game {
         const piece = moveAttempt.piece
         const move = {from: moveAttempt.from, to: moveAttempt.to}
 
+        // DONE: changed 8s to 10s
         const isBlackCastle = ((move.from === 'e1' && move.to === 'g1') || (move.from === 'e1' && move.to === 'c1')) 
-        const isWhiteCastle = (move.from === 'e8' && move.to === 'g8') || (move.from === 'e8' && move.to === 'c8')
+        const isWhiteCastle = (move.from === 'e10' && move.to === 'g10') || (move.from === 'e10' && move.to === 'c10')
         
 
         if (!(isWhiteCastle || isBlackCastle) || piece !== 'k') {
@@ -249,9 +250,9 @@ class Game {
         }
     }
 
-    // Must change 735 to a 825 due to 2 rows being added
+    // DONE: Must change 735 to a 915 due to 2 rows being added (each row is 90 pixes)
     isPawnPromotion(to, piece) {
-        const res = piece === 'p' && (to[1] === 105 || to[1] === 825)
+        const res = piece === 'p' && (to[1] === 105 || to[1] === 915)
         if (res) {
             this.nQueens += 1
         }
@@ -265,12 +266,12 @@ class Game {
         return move_x + move_y;
     }
     
-
+    // DONE changed i to 10 instead of 8
     findPiece(board, pieceId) {
         // ChessBoard, String -> [Int, Int]
       //  console.log("piecetofind: " + pieceId)
-        for (var i = 0; i < 8; i++) {
-            for (var j = 0; j < 10; j++) {
+        for (var i = 0; i < 10; i++) {
+            for (var j = 0; j < 8; j++) {
                 if (board[i][j].getPieceIdOnThisSquare() === pieceId) {
                     return [j, i]
                 }
@@ -281,10 +282,10 @@ class Game {
     makeStartingBoard() {
         const backRank = ["rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook"]
         var startingChessBoard = []
-        // DONE: CHECK: Make j < 10 instead of 8 to add 2 rows? is it j or i
-        for (var i = 0; i < 8; i++) {
+        // DONE: CHECK: Makde i 10 instead of 8 to add 2 more rows
+        for (var i = 0; i < 10; i++) {
             startingChessBoard.push([])
-            for (var j = 0; j < 10; j++) {
+            for (var j = 0; j < 8; j++) {
                 // j is horizontal
                 // i is vertical
                 const coordinatesOnCanvas = [((j + 1) * 90 + 15), ((i + 1) * 90 + 15)]
@@ -299,7 +300,7 @@ class Game {
             for (var i = 0; i < 8; i++) {
                 if (j == 0) {
                     // top
-                    // console.log(backRank[i])
+                    //console.log(backRank[i])
                     startingChessBoard[j][this.thisPlayersColorIsWhite ? i : 7 - i].setPiece(new ChessPiece(backRank[i], false, this.thisPlayersColorIsWhite ? "black" : "white", this.thisPlayersColorIsWhite ? blackBackRankId[i] : whiteBackRankId[i]))
                     startingChessBoard[j + 1][this.thisPlayersColorIsWhite ? i : 7 - i].setPiece(new ChessPiece("pawn", false, this.thisPlayersColorIsWhite ? "black" : "white", this.thisPlayersColorIsWhite ? "bp" + i : "wp" + i))
                 } else {
