@@ -270,10 +270,13 @@ class Game {
     
     // DONE changed i to 10 instead of 8
     findPiece(board, pieceId) {
+        console.log('Board: ' + board)
+        console.log('PieceId: ' + pieceId)
         // ChessBoard, String -> [Int, Int]
       //  console.log("piecetofind: " + pieceId)
         for (var i = 0; i < 10; i++) {
             for (var j = 0; j < 8; j++) {
+                console.log('(' + 'i:' + i + ',' + 'j:' + j + ') ---> ' + board[i][j].getPieceIdOnThisSquare())
                 if (board[i][j].getPieceIdOnThisSquare() === pieceId) {
                     return [j, i]
                 }
@@ -312,6 +315,7 @@ class Game {
                 }
             }
         }
+        console.log('Makeing Starting chess board: ' + startingChessBoard)
         return startingChessBoard
     }
 }
