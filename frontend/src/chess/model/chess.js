@@ -103,7 +103,8 @@ class Game {
         const isPromotion = this.isPawnPromotion(to, pieceId[1])
 
         console.log("Moving Piece: ", pieceId[1])
-        const moveAttempt = !isPromotion ? this.chess.move({
+        const moveAttempt = !isPromotion ? this.chess.move(      
+            {
                 from: this.toChessMove([x, y], to2D_x, to2D_y),
                 to: this.toChessMove(to, to2D_x, to2D_y),
                 piece: pieceId[1]}) 
