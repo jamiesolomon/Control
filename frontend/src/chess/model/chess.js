@@ -103,6 +103,21 @@ class Game {
         const isPromotion = this.isPawnPromotion(to, pieceId[1])
 
         console.log("Moving Piece: ", pieceId[1])
+        // const moveAttempt = !isPromotion ? this.chess.move(      
+        //     {
+        //         from: this.toChessMove([x, y], to2D_x, to2D_y),
+        //         to: this.toChessMove(to, to2D_x, to2D_y),
+        //         piece: pieceId[1]}) 
+        //     : 
+        //     this.chess.move({
+        //         from: this.toChessMove([x, y], to2D_x, to2D_y),
+        //         to: this.toChessMove(to, to2D_x, to2D_y),
+        //         piece: pieceId[1],
+        //         promotion: 'q'
+        //     })
+
+
+        // TODO: create a move object here without validating
         const moveAttempt = !isPromotion ? this.chess.move(      
             {
                 from: this.toChessMove([x, y], to2D_x, to2D_y),
@@ -117,6 +132,7 @@ class Game {
             })
 
 
+
          console.log(moveAttempt)
         // console.log(isPromotion)
 
@@ -126,6 +142,7 @@ class Game {
 
 
         if (moveAttempt.flags === 'e') {
+            console.log('moveAttempt.flags === \'e\'')
             const move = moveAttempt.to 
             const x = this.toAlphabet2[move[0]]
             let y
@@ -266,6 +283,10 @@ class Game {
     toChessMove(finalPosition, to2D_x, to2D_y) {
         const move_x = this.toAlphabet[to2D_x[finalPosition[0]]];
         const move_y = this.toCoord[to2D_y[finalPosition[1]]];
+        console.log('--------- toChessMove() --------')
+        console.log('move_x: ' + move_x)
+        console.log('move_y: ' + move_y)
+        console.log('move_y + move_y: ' + move_x + move_y)
         return move_x + move_y;
     }
     
@@ -298,6 +319,7 @@ class Game {
                 const emptySquare = new Square(j, i, null, coordinatesOnCanvas)
                 
                 startingChessBoard[i].push(emptySquare)
+                console.log('Added square: ' + j + ',' + i)
             }
         }
         const whiteBackRankId = ["wr1", "wn1", "wb1", "wq1", "wk1", "wb2", "wn2", "wr2"]
@@ -316,7 +338,7 @@ class Game {
                 }
             }
         }
-        console.log('Makeing Starting chess board: ' + startingChessBoard)
+        console.log(' -------- Makeing Starting chess board --------\n' + startingChessBoard)
         return startingChessBoard
     }
 }

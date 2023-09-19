@@ -121,6 +121,11 @@ class ChessGame extends React.Component {
         const finalPosition = this.inferCoord(e.target.x() + 90, e.target.y() + 90, currentBoard)
         const selectedId = this.state.draggedPieceTargetId
         this.movePiece(selectedId, finalPosition, currentGame, true)
+        console.log('---endDragging in movePeice---')
+        console.log('currentGame: ' + currentGame)
+        console.log('currentBoard: ' + currentBoard)
+        console.log('finalPosition: ' + finalPosition)
+        console.log('selectedId: ' + selectedId)
     }
 
     revertToPreviousState = (selectedId) => {
