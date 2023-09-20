@@ -58,6 +58,13 @@ class Game {
     }
 
     movePiece(pieceId, to, isMyMove) {
+        console.log('------Begining of movePiece(pieceId, to, isMyMove)------')
+        console.log('pieceId: ' + pieceId)
+        console.log('to: ' + to)
+
+        function getKeyByValue(object, value) {
+            return Object.keys(object).find(key => object[key] === value);
+        }
 
         const to2D_y = isMyMove ? {
             105:0, 195:1, 285: 2, 375: 3, 465: 4, 555: 5, 645: 6, 735: 7, 825: 8, 915: 9
@@ -78,7 +85,8 @@ class Game {
         if (!pieceCoordinates) {
             return;
         }
-    
+        
+        // return axis coords, need chess coords
         const y = pieceCoordinates[1];
         const x = pieceCoordinates[0];
     
@@ -116,11 +124,15 @@ class Game {
         //         promotion: 'q'
         //     })
 
+        // DONE: Changing [x, y] to rep canvas coords not axis coords
+        const xCoord = getKeyByValue(to2D_x, x)
+        const yCoord = getKeyByValue(to2D_y, y)
 
-        // TODO: create a move object here without validating
+
+        // TODO: create a move object here without validating (added above coords instead of axis coords)
         const moveAttempt = !isPromotion ? this.chess.move(      
             {
-                from: this.toChessMove([x, y], to2D_x, to2D_y),
+                from: this.toChessMove([xCoord, yCoord], to2D_x, to2D_y),
                 to: this.toChessMove(to, to2D_x, to2D_y),
                 piece: pieceId[1]}) 
             : 
@@ -133,7 +145,7 @@ class Game {
 
 
 
-         console.log(moveAttempt)
+        console.log(moveAttempt)
         // console.log(isPromotion)
 
         if (moveAttempt === null) {
@@ -284,6 +296,8 @@ class Game {
         const move_x = this.toAlphabet[to2D_x[finalPosition[0]]];
         const move_y = this.toCoord[to2D_y[finalPosition[1]]];
         console.log('--------- toChessMove() --------')
+        console.log('finalPosition[0] (move_x): ' + finalPosition[0])
+        console.log('finalPosition[1] (move_y): ' + finalPosition[1])
         console.log('move_x: ' + move_x)
         console.log('move_y: ' + move_y)
         console.log('move_y + move_y: ' + move_x + move_y)
@@ -300,6 +314,7 @@ class Game {
             for (var j = 0; j < 8; j++) {
                 console.log('(' + 'i:' + i + ',' + 'j:' + j + ') ---> ' + board[i][j].getPieceIdOnThisSquare())
                 if (board[i][j].getPieceIdOnThisSquare() === pieceId) {
+                    // why does it return the j, i instead of i, j
                     return [j, i]
                 }
             }
