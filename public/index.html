@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chess Game</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script> 
+    <script src="game.js"></script> 
+    <style>
+        body {
+            margin: 0; /* Remove default body margins */
+            padding: 0;
+            background-color: #f0f0f0; /* Example background color */
+            display: flex; /* Layout for automatic centering */
+            justify-content: center; 
+            align-items: center;
+            min-height: 100vh; /* Ensure game takes up full viewport height*/
+        }
+
+        #buyback-ui {
+            position: absolute; /* Or relative, depending on your layout */
+            top: 20px;
+            right: 20px;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border: 1px solid #ddd;
+        }
+
+        #buyback-pieces {
+            display: flex; /* Or grid, depending on how you want to arrange pieces */
+        }
+
+        #stats-container { 
+            font-family: Arial, sans-serif;
+            background-color: #eee; /* Light gray background */
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+        }
+
+        #player1-stats, #player2-stats { 
+            border: 1px solid #ccc; /* Light border */
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        /* Style for the piece buttons */
+        .piece-button { 
+            width: 60px; /* Example button width */
+            height: 60px; /* Example button height */
+            background-color: transparent; /* No background color */
+            border: none; /* Remove default button border */
+            padding: 0;   /* Remove default padding */
+            cursor: pointer; /* Indicate that it's clickable */  
+            background-size: contain; /* Scale the image to fit the button */
+            background-repeat: no-repeat; /* Prevent the image from tiling */
+        }
+
+        /* Add hover effect - Optional */
+        .piece-button:hover {
+            background-color: rgba(255, 255, 255, 0.2); /* Slightly highlighted on hover */
+        }
+
+        #piece-buttons-container {
+            display: flex;
+            flex-direction: column; /* Arrange elements vertically */
+            /* Optionally, to center horizontally: */
+            align-items: center; 
+        }
+    </style>
+</head>
+<body>
+    <div id="turn-display">White's Turn</div>
+    <div id="game-container"></div>
+    <div id="stats-container"> 
+      <div id="player2-stats"> <h3>Black:</h3>
+        <p>Victory Points: <span id="player2-vp">0</span></p>
+        <p>Coins: <span id="player2-coins">0</span></p>
+      </div>
+      <div id="player1-stats"> <h3>White:</h3>
+        <p>Victory Points: <span id="player1-vp">0</span></p>
+        <p>Coins: <span id="player1-coins">0</span></p>
+      </div>
+    </div>
+    <div id="buyback-ui">
+        <h3>Buy Pieces</h3>
+        <div id="piece-buttons-container">
+
+        </div> 
+    </div>
+    <script src="game.js" defer>
+        // Your game.js file contains all the Phaser-specific logic
+    </script>
+  </body>
+</html>

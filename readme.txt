@@ -1,0 +1,1 @@
+peices: https://commons.wikimedia.org/wiki/Template:SVG_chess_pieces
