@@ -1,0 +1,80 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Roboto', sans-serif;
+    background-color: #b63046;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.main-container {
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    gap: 20px;
+    max-width: 1200px; /* Adjust based on your layout needs */
+    width: 100%;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    gap: 20px;
+}
+
+#game-container {
+    width: 614.4px; /* Adjust based on your game's size */
+    height: 921.6px; /* Adjust based on your game's size */
+    background-color: #20232a;
+    border: 5px solid #61dafb;
+    box-shadow: 0 0 10px #61dafb;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#buyback-ui {
+    width: 200px; /* Adjust as needed */
+    padding: 20px;
+    background-color: #43b982;
+    border: 2px solid #61dafb;
+    box-shadow: 0 0 5px #61dafb;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#game-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #20232a;
+    border: 2px solid #61dafb;
+    box-shadow: 0 0 5px #61dafb;
+}
+
+#stats-container {
+    margin-top: 20px;
+}
+
+#stats-container h3 {
+    color: #61dafb;
+}
+
+
+.piece-button {
+    width: 60px; /* Set a minimum width */
+    height: 60px; /* Set a minimum height */
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    background-size: contain; /* This will ensure the image fits within the button */
+    background-repeat: no-repeat;
+    background-position: center; /* Center the image within the button */
+}

@@ -51,6 +51,7 @@ const config = {
     type: Phaser.AUTO, 
     width: 1536 * scale, // Adjust if needed
     height: 2304 * scale, // Adjust if needed
+    parent: 'game-container',
     scene: {
         preload: preload,
         create: create,
