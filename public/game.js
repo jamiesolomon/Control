@@ -176,21 +176,33 @@ function create() {
             //console.log(currentPlayer)
             //console.log('test')
             //console.log(gameObject)
+            //console.log(boardState)
 
+            
             
 
             // Capture if necessary 
             const capturedPiece = boardState[targetRow][targetCol]; 
+            //console.log(capturedPiece)
+
+
+            if (capturedPiece.type != 'empty' && capturedPiece.data.list.color == currentPlayer.color) {
+                gameObject.x = gameObject.startPosition.x;
+                gameObject.y = gameObject.startPosition.y;
+                return
+
+            }
+
             // console.log(capturedPiece)
             // console.log(currentPlayer)
-            if (capturedPiece.type != 'empty' && capturedPiece.color != currentPlayer.color) {
+            if (capturedPiece.type != 'empty' && capturedPiece.data.list.color != currentPlayer.color) {
                 console.log('Capturing piece: ')
                 console.log(capturedPiece)
                 const index = chessPieceSprites.findIndex(sprite => 
                     sprite.data.get('row') === targetRow && 
                     sprite.data.get('col') === targetCol); 
-                chessPieceSprites[index].destroy(); // Visually remove captured piece
-                chessPieceSprites.splice(index, 1); // Remove the sprite from the array
+                chessPieceSprites[index].visible = false; // Hide the sprite
+                //chessPieceSprites.splice(index, 1); // Remove the sprite from the array
             }
             
             const tempRow = gameObject.data.list.row
@@ -636,7 +648,7 @@ function calculateValidMoves(piece, boardState) {
         default:
             console.error("Unknown piece type:", piece.type);
     }
-    console.log(validMoves)
+    //console.log(validMoves)
 
     return validMoves;
 }
@@ -785,9 +797,9 @@ function setOriginalState(boardState) {
         }
 
     }
-    originalPiecePositions = originalPieces
+    originalPiecePositions = originalPieces;
     //console.log(originalPiecePositions)
-
+     //originalPiecePositions = JSON.parse(JSON.stringify(originalPieces));
 }
 
 function getPieceValue(pieceType) {
@@ -814,7 +826,7 @@ function getOriginalPosition(piece) {
     for(el of originalPiecePositions)
     {
         // console.log(piece.data.list.id)
-        console.log(el.data.list.id)
+        //console.log(el.data.list.id)
         
         
         if (piece.data.list.id == el.data.list.id){
@@ -867,7 +879,7 @@ function updateBuybackUI(scene, piece) {
     // 3. Store sprite (or an object containing the sprite) in chessPieceSprites
     chessPieceSprites.push(sprite); 
     pieceIds.push(spriteName)
-    console.log(boardState)
+    //console.log(boardState)
 
 }
 
@@ -905,29 +917,30 @@ function getImagePath(type, color) {
 }
 
 function handleBuybackClick(event, boardState) {
-    console.log(event)
+    //console.log(event)
     const pieceType = event.type;
     const color = event.data.list.color;
     const pieceKey = event.data.list.id
     let piece = null
     for (el of originalPiecePositions) {
-        //console.log(el)
+        console.log(el)
         if (el.data.list.id == pieceKey){
             piece = el
         }
     }
-    console.log('Clicked!!')
-    console.log(game)
+    //console.log('Clicked!!')
+    //console.log(game)
 
     const player = currentPlayer; // Assuming you have the current player
     if (buyBackPiece(player, piece) == true) {
         // Update buyback UI if successful
         //updateBuybackUI(piece);
-        console.log('Buy was succesful')
+        console.log('Buy was successful')
         switchTurns()
         return true
     } else {
         // Provide feedback if unsuccessful (e.g., not enough coins)
+        console.log('Buy unsuccsessful')
     }
 }
 
@@ -952,3 +965,10 @@ function updateTurnDisplay() {
 
     
 
+function cloneSprite(sprite) {
+    // Create a new sprite object manually.
+    // You need to copy over the properties you care about.
+    const clonedSprite = new Sprite(sprite.x, sprite.y, sprite.texture);
+    // Copy other properties as needed
+    return clonedSprite;
+}

@@ -1,6 +1,6 @@
 body, html {
-    margin: 0;
-    padding: 0;
+    margin: 50px;
+    padding: 25px;
     height: 100%;
     font-family: 'Roboto', sans-serif;
     background-color: #b63046;
@@ -41,11 +41,15 @@ body, html {
     width: 200px; /* Adjust as needed */
     padding: 20px;
     background-color: #43b982;
-    border: 2px solid #61dafb;
+    border: 3px solid #61dafb;
     box-shadow: 0 0 5px #61dafb;
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+#buyback-ui h3 {
+    text-align: center;
 }
 
 #game-info {
@@ -54,7 +58,7 @@ body, html {
     align-items: center;
     padding: 20px;
     background-color: #20232a;
-    border: 2px solid #61dafb;
+    border: 3px solid #61dafb;
     box-shadow: 0 0 5px #61dafb;
 }
 
@@ -77,4 +81,23 @@ body, html {
     background-size: contain; /* This will ensure the image fits within the button */
     background-repeat: no-repeat;
     background-position: center; /* Center the image within the button */
+}
+
+.hero {
+    background-color: #b63046; /* Light grey background */
+    padding: 20px; /* Add some padding around the content */
+    text-align: center; /* Center the text */
+    border-bottom: 2px solid #ddd; /* Add a subtle border */
+}
+
+.hero h1 {
+    color: #333; /* Dark text color for the headline */
+    font-size: 2.5rem; /* Large font size */
+    margin-bottom: 10px; /* Space below the headline */
+}
+
+.hero .tagline {
+    color: #666; /* Medium-dark text color for the tagline */
+    font-size: 1.2rem; /* Slightly larger font size */
+    margin-top: 0; /* Reduce space above the tagline */
 }
