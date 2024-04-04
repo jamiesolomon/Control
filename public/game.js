@@ -674,6 +674,7 @@ function switchTurns() {
         currentPlayer = player1
     }
     updateTurnDisplay();
+    console.log("Successful move, switching turns")
         
 }
 
@@ -776,7 +777,7 @@ function buyBackPiece(player, piece) {
         }
     } else {
         console.log("Piece's original spot is not empty")
-        console.log(originalPiecePositions)
+        //console.log(originalPiecePositions)
     }
     
     // ... Handle no open starting squares for that piece type 
@@ -923,7 +924,7 @@ function handleBuybackClick(event, boardState) {
     const pieceKey = event.data.list.id
     let piece = null
     for (el of originalPiecePositions) {
-        console.log(el)
+        //console.log(el)
         if (el.data.list.id == pieceKey){
             piece = el
         }
