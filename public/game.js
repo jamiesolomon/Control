@@ -25,6 +25,8 @@ class Player {
       this.victoryPoints = 0;
       this.coins = 0;
       this.color = '';
+      this.coinIncome = 0;
+      this.pointIncome = 0;
     }
   }
 const player1 = new Player();
@@ -224,7 +226,9 @@ function create() {
 
     
             // Re-render the board if necessary
+            //updatePlayerStatsUI()
             switchTurns()
+            
             handleStartTurn(boardState)
             // console.log(player1)
             // console.log(player2)
@@ -682,6 +686,8 @@ function handleStartTurn(boardState) { // Assuming currentPlayer is a Player obj
 
     let income = 0
     let vp = 0
+    currentPlayer.coinIncome = 0
+    currentPlayer.pointIncome = 0
 
     for (let row = 0; row < 12; row++) {
         for (let col = 0; col < 8; col++) {
@@ -695,10 +701,12 @@ function handleStartTurn(boardState) { // Assuming currentPlayer is a Player obj
                     //add victoryPoints
                     currentPlayer.victoryPoints += yellowVal;
                     vp += yellowVal
+                    currentPlayer.pointIncome += yellowVal;
                 } else if (squareColor == 'green') {
                     //add coins
                     currentPlayer.coins += greenVal;
                     income += greenVal
+                    currentPlayer.coinIncome += greenVal;
                 }
             }
         }
@@ -713,6 +721,10 @@ function updatePlayerStatsUI() {
     const player2VP = document.getElementById('player2-vp');
     const player1Coins = document.getElementById('player1-coins');
     const player2Coins = document.getElementById('player2-coins');
+    const player1CoinIncome = document.getElementById('player1-coin-income');
+    const player2CoinIncome = document.getElementById('player2-coin-income');
+    const player1VPIncome = document.getElementById('player1-vp-income');
+    const player2VPIncome = document.getElementById('player2-vp-income');
     // console.log(player1VP)
     // console.log(player1VP.textContent)
 
@@ -720,6 +732,12 @@ function updatePlayerStatsUI() {
     player2VP.textContent = allPlayers[1].victoryPoints; // Update player 2's VP
     player1Coins.textContent = allPlayers[0].coins; 
     player2Coins.textContent = allPlayers[1].coins; 
+    player1CoinIncome.textContent = allPlayers[0].coinIncome;
+    player2CoinIncome.textContent = allPlayers[1].coinIncome;
+    player1VPIncome.textContent = allPlayers[0].pointIncome;
+    player2VPIncome.textContent = allPlayers[1].pointIncome;
+
+
 }
 
 function createBaseColorBoard() {

@@ -38,14 +38,14 @@ body, html {
 }
 
 #buyback-ui {
-    width: 200px; /* Adjust as needed */
+    width: 500px; /* Adjust as needed */
     padding: 20px;
     background-color: #43b982;
     border: 3px solid #61dafb;
     box-shadow: 0 0 5px #61dafb;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 7px;
 }
 
 #buyback-ui h3 {
@@ -63,7 +63,8 @@ body, html {
 }
 
 #stats-container {
-    margin-top: 20px;
+    margin-top: 14px;
+    width: 120px
 }
 
 #stats-container h3 {
