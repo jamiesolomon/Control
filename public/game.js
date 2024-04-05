@@ -201,8 +201,9 @@ function create() {
                 console.log('Capturing piece: ')
                 console.log(capturedPiece)
                 const index = chessPieceSprites.findIndex(sprite => 
-                    sprite.data.get('row') === targetRow && 
-                    sprite.data.get('col') === targetCol); 
+                    // sprite.data.get('row') === targetRow && 
+                    // sprite.data.get('col') === targetCol); 
+                    sprite.data.get('id') === capturedPiece.data.list.id); 
                 chessPieceSprites[index].visible = false; // Hide the sprite
                 //chessPieceSprites.splice(index, 1); // Remove the sprite from the array
             }
@@ -866,6 +867,7 @@ function updateBuybackUI(scene, piece) {
 
 
     let spriteName = piece.type.charAt(0).toUpperCase() + piece.type.slice(1) + '_' + piece.data.list.color.charAt(0).toUpperCase() + piece.data.list.color.slice(1);
+    
     //console.log(spriteName)
     const x = col * squareSize + squareSize/2;
     const y = row * squareSize + squareSize/2;
@@ -884,11 +886,14 @@ function updateBuybackUI(scene, piece) {
     sprite.data.set('startRow', row)
     sprite.data.set('color', piece.color)
 
-    if (pieceIds.includes(spriteName)) {
-        spriteName = (spriteName + pieceCount)
-        console.log(spriteName + ' created')
-        pieceCount++
-    }
+    // if (pieceIds.includes(spriteName)) {
+    //     
+    //     console.log(spriteName + ' created')
+    //     pieceCount++
+    // }
+    spriteName = spriteName + pieceCount
+    pieceCount++
+
 
     sprite.data.set('id', spriteName)
     scene.input.setDraggable(sprite)
