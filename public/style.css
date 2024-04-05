@@ -97,7 +97,7 @@ body, html {
 }
 
 .hero .tagline {
-    color: #666; /* Medium-dark text color for the tagline */
+    color: #383636; /* Medium-dark text color for the tagline */
     font-size: 1.2rem; /* Slightly larger font size */
     margin-top: 0; /* Reduce space above the tagline */
 }
