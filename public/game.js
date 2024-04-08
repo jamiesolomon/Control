@@ -1041,15 +1041,15 @@ document.addEventListener('DOMContentLoaded', () => {
         switch (pageIndex) {
             case 0:
                 title.textContent = "How do you Win?";
-                paragraph.innerHTML = "Get 20 victory points! <br><br> + Earn 1 victory point for every Yellow square you control";
+                paragraph.innerHTML = "Get 20 victory points! <br><br> + Earn 1 victory point for every Yellow square you control<br><br> + Controling a square means one of your pieces are on it at the begining of your turn";
                 break;
             case 1:
                 title.textContent = "Buying Pieces?";
-                paragraph.innerHTML = "+ Earn 0.5 coins for every green square you control.<br>" +  "+ Buy a piece from the shop to the right!<br>" + "+ Each piece costs as much as its corresponding chess value.";
+                paragraph.innerHTML = "+ Earn 0.5 coins for every green square you control.<br><br>" +  "+ Buy a piece from the shop to the right!<br><br>" + "+ Each piece costs as much as its corresponding chess value.";
                 break;
             case 2: // New Page
                 title.textContent = "Moving and Capturing";
-                paragraph.innerHTML = "+ All legal chess moves are allowed except casteling and en-pacent. <br>+ no points or coins are awarded for captures, but that may change in a future update.";
+                paragraph.innerHTML = "+ All legal chess moves are allowed except casteling and en-pacent. <br><br>+ no points or coins are awarded for captures, but that may change in a future update.";
                 break;
             default:
                 title.textContent = "Page Title Not Found";
