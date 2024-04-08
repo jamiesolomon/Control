@@ -102,3 +102,58 @@ body, html {
     font-size: 1.2rem; /* Slightly larger font size */
     margin-top: 0; /* Reduce space above the tagline */
 }
+
+.info-container {
+    position: relative;
+    display: inline-block;
+}
+
+.info-icon {
+    font-size: 24px;
+    cursor: pointer;
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    color: #fff; /* Adjust based on your hero section's color scheme */
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 240px; /* Increased width */
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    padding: 20px; /* Increased padding for more space */
+    z-index: 1;
+    left: 10px;
+    bottom: -10px; /* Adjust this value to lower the dropdown */
+    transform: translateY(100%); /* This moves the dropdown below the icon */
+    color: #333;
+}
+
+.dropdown-content h3, .dropdown-content p, .dropdown-content ul {
+    font-size: 16px; /* Adjust based on your preference */
+}
+
+/* Style to show the dropdown content */
+.show {
+    display: block;
+}
+
+.dropdown-content.show {
+    display: block;
+}
+
+.dropdown-content button {
+    padding: 5px 10px;
+    margin: 5px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.dropdown-content button:hover {
+    background-color: #0056b3;
+}
+

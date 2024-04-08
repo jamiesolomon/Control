@@ -1026,3 +1026,71 @@ function cloneSprite(sprite) {
     // Copy other properties as needed
     return clonedSprite;
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const infoIcon = document.querySelector('.info-icon');
+    const dropdownContent = document.querySelector('.dropdown-content');
+
+    function renderPage(pageIndex) {
+        dropdownContent.innerHTML = ''; // Clear previous content
+
+        const title = document.createElement('h3');
+        const paragraph = document.createElement('p');
+        
+        // Dynamically set the content based on the pageIndex
+        switch (pageIndex) {
+            case 0:
+                title.textContent = "How do you Win?";
+                paragraph.innerHTML = "Get 20 victory points! <br><br> + Earn 1 victory point for every Yellow square you control";
+                break;
+            case 1:
+                title.textContent = "Buying Pieces?";
+                paragraph.innerHTML = "+ Earn 0.5 coins for every green square you control.<br>" +  "+ Buy a piece from the shop to the right!<br>" + "+ Each piece costs as much as its corresponding chess value.";
+                break;
+            case 2: // New Page
+                title.textContent = "Moving and Capturing";
+                paragraph.innerHTML = "+ All legal chess moves are allowed except casteling and en-pacent. <br>+ no points or coins are awarded for captures, but that may change in a future update.";
+                break;
+            default:
+                title.textContent = "Page Title Not Found";
+                paragraph.textContent = "No additional content available.";
+                break;
+        }
+
+        dropdownContent.appendChild(title);
+        dropdownContent.appendChild(paragraph);
+
+        // Navigation container for page switching
+        const navContainer = document.createElement('div');
+        navContainer.style.textAlign = 'center';
+
+        if (pageIndex > 0) {
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = 'Previous';
+            prevBtn.onclick = () => { renderPage(pageIndex - 1); };
+            navContainer.appendChild(prevBtn);
+        }
+
+        // Update the condition to reflect the new total number of pages
+        if (pageIndex < 3 - 1) { // Now assuming 3 pages
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Next';
+            nextBtn.onclick = () => { renderPage(pageIndex + 1); };
+            navContainer.appendChild(nextBtn);
+        }
+
+        dropdownContent.appendChild(navContainer);
+    }
+
+    if (infoIcon && dropdownContent) {
+        infoIcon.addEventListener('click', function() {
+            dropdownContent.classList.toggle('show');
+            if (dropdownContent.classList.contains('show') && !dropdownContent.hasChildNodes()) {
+                renderPage(0); // Initially render the first page
+            }
+        });
+    }
+});
+
+
+
