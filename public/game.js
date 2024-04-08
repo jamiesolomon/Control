@@ -228,6 +228,7 @@ function create() {
     
             // Re-render the board if necessary
             //updatePlayerStatsUI()
+            handleEndTurn(boardState)
             switchTurns()
             
             handleStartTurn(boardState)
@@ -717,6 +718,34 @@ function handleStartTurn(boardState) { // Assuming currentPlayer is a Player obj
 
 }
 
+function handleEndTurn(boardState) { // Assuming currentPlayer is a Player object
+
+    currentPlayer.coinIncome = 0
+    currentPlayer.pointIncome = 0
+
+    for (let row = 0; row < 12; row++) {
+        for (let col = 0; col < 8; col++) {
+            const square = boardState[row][col];
+            // console.log(square)
+            // console.log(piece.color)
+            // console.log(currentPlayer.color)
+            if (square.type != 'empty' && square.color == currentPlayer.color) { // Check for current player's piece
+                const squareColor = boardColors[row][col]; 
+                if (squareColor == 'yellow') {
+                    //add victoryPoints income
+                    currentPlayer.pointIncome += yellowVal;
+                } else if (squareColor == 'green') {
+                    //add coins income
+                    currentPlayer.coinIncome += greenVal;
+                }
+            }
+        }
+    }
+    updatePlayerStatsUI(); // Update the UI with new stats
+
+
+}
+
 function updatePlayerStatsUI() {
     const player1VP = document.getElementById('player1-vp');
     const player2VP = document.getElementById('player2-vp');
@@ -961,6 +990,7 @@ function handleBuybackClick(event, boardState) {
         //updateBuybackUI(piece);
         console.log('Buy was successful')
         switchTurns()
+        handleStartTurn()
         return true
     } else {
         // Provide feedback if unsuccessful (e.g., not enough coins)
