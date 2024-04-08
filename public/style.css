@@ -88,7 +88,7 @@ body, html {
     background-color: #b63046; /* Light grey background */
     padding: 20px; /* Add some padding around the content */
     text-align: center; /* Center the text */
-    border-bottom: 2px solid #ddd; /* Add a subtle border */
+    /* border-bottom: 2px solid #ddd; Add a subtle border */
 }
 
 .hero h1 {
