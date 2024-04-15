@@ -3,55 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control - The Incredible Board Game</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js" defer></script>
-    <script src="game.js" defer></script>
+    <title>Start New Game</title>
 </head>
 <body>
+    <button id="startNewGame">Start New Game</button>
     
-    <main>
-        <section class="hero">
-            <h1>Control</h1>
-            <p class="tagline">Possibly the greatest boardgame ever. But who knows, I'm not a doctor.</p><br>
-            <!-- Information Icon and Dropdown Content -->
-            <div class="info-container">
-                <i class="info-icon">&#9432;</i> <!-- Information Icon -->
-                <div class="dropdown-content"></div>
-            </div>            
-        </section>
-        
-        <div class="main-container">
-            <div id="game-info">
-                <div id="turn-display">White's Turn</div>
-                <div id="stats-container">
-                    <div id="player-stats">
-                        <div id="player2-stats">
-                            <h3>Black:</h3>
-                            <p>Victory Points: <span id="player2-vp">0</span></p>
-                            <p>VP Income: <span id="player2-vp-income">0</span></p>
-                            <p>Coins: <span id="player2-coins">0</span></p>
-                            <p>Coin Income: <span id="player2-coin-income">0</span></p>
-                        </div>
-                        <div id="player1-stats">
-                            <h3>White:</h3>
-                            <p>Victory Points: <span id="player1-vp">0</span></p>
-                            <p>VP Income: <span id="player1-vp-income">0</span></p>
-                            <p>Coins: <span id="player1-coins">0</span></p>
-                            <p>Coin Income: <span id="player1-coin-income">0</span></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="container">
-                <div id="game-container"></div>
-                <div id="buyback-ui">
-                    <h3>Buy Pieces</h3>
-                    <div id="piece-buttons-container"></div>
-                </div>
-            </div>
-        </div>
-    </main>
+    <script>
+        document.getElementById('startNewGame').addEventListener('click', function() {
+            fetch('/new-session', {
+                method: 'GET' // Adjust if your server expects POST
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const sessionId = data.sessionId;
+                
+                // Redirect to the game page with the session ID
+                window.location.href = `/control.html?session=${sessionId}`;
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+        });
+    </script>
 </body>
 </html>

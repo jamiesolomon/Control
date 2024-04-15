@@ -15,10 +15,11 @@ const yellowVal = 1
 let gameScene = null;
 let pieceIds = []
 let pieceCount = 1
+const socket = io(); // This should be accessible across your script
 
 
 
-
+// INSTANTIATE PLAYERS IN SERVER NOT GAME.JS FILE!!!
 
 class Player {
     constructor() {
@@ -99,24 +100,28 @@ function create() {
 
     //add board
     this.add.image(horizontalCenter, verticalCenter, 'board').setScale(scale); // Adjust if needed
-    
 
-    // Fetch initial board state 
-    fetch('/board-state')
-            .then(response => response.json())
-            .then(data => {
-                //SHOULD BE LOGGING 'EMPTY' SQUARES, NOT NULL
-                //console.log(data)
-                boardState = data.squares;
-                gameScene.data.boardState = data.squares 
-                gameScene.data.startBoardState = data.squares 
-                //console.log(data.squares)
-                initializePieces.call(this, boardState); 
-                populateBuybackUI.call(this, boardState)
-                turnDisplay = document.getElementById('turn-display');
-                //setOriginalState(boardState)
-                //console.log(turnDisplay)         
-            });
+    const sessionId = new URLSearchParams(window.location.search).get('session');
+    console.log(sessionId)
+    
+    if (sessionId) {
+        // Fetch initial board state 
+        fetch(`/board-state/${sessionId}`)
+                .then(response => response.json())
+                .then(data => {
+                    //SHOULD BE LOGGING 'EMPTY' SQUARES, NOT NULL
+                    console.log(data)
+                    boardState = data.squares;
+                    gameScene.data.boardState = data
+                    gameScene.data.startBoardState = data
+                    //console.log(data.squares)
+                    initializePieces.call(this, boardState); 
+                    populateBuybackUI.call(this, boardState)
+                    turnDisplay = document.getElementById('turn-display');
+                    //setOriginalState(boardState)
+                    //console.log(turnDisplay)         
+                });
+            }
 
         // Enable drag for all sprites
         //this.input.setDraggable(chessPieceSprites);
@@ -184,7 +189,7 @@ function create() {
             
 
             // Capture if necessary 
-            const capturedPiece = boardState[targetRow][targetCol]; 
+            const capturedPiece = gameScene.data.boardState[targetRow][targetCol]; 
             //console.log(capturedPiece)
 
 
@@ -218,12 +223,12 @@ function create() {
     
             // Update boardState: 
             //console.log(gameObject)
-            boardState[targetRow][targetCol] = gameObject;
-            boardState[tempRow][tempCol] = { type: 'empty' };
+            gameScene.data.boardState[targetRow][targetCol] = gameObject;
+            gameScene.data.boardState[tempRow][tempCol] = { type: 'empty' };
             //console.log(gameObject)
             //console.log(boardState)
-            boardState[targetRow][targetCol].color = gameObject.data.list.color
-            boardState[targetRow][targetCol].piece = gameObject
+            gameScene.data.boardState[targetRow][targetCol].color = gameObject.data.list.color
+            gameScene.data.boardState[targetRow][targetCol].piece = gameObject
 
     
             // Re-render the board if necessary
@@ -232,6 +237,15 @@ function create() {
             switchTurns()
             
             handleStartTurn(boardState)
+            const action = {
+                playerColor: currentPlayer.color,
+                type: 'move',
+                details: {
+                    from: {row: tempRow, col: tempCol},
+                    to: {row: targetRow, col: targetCol}
+                }    
+            }
+            sendGameAction(action)
             // console.log(player1)
             // console.log(player2)
             // (Potentially) updateBlocking(boardState); 
@@ -254,14 +268,14 @@ function create() {
 function initializePieces() {
     //console.log(this)
     //console.log(game.data.boardState)
-    //console.log(boardState)
+    console.log(gameScene)
     // 1. Iterate through boardState to access piece data
 
     
     
-    for (let row = 0; row < boardState.length; row++) {
-        for (let col = 0; col < boardState[row].length; col++) {
-            const piece = boardState[row][col];
+    for (let row = 0; row < gameScene.data.boardState.length; row++) {
+        for (let col = 0; col < gameScene.data.boardState[row].length; col++) {
+            const piece = gameScene.data.boardState[row][col];
             //console.log(piece)
             if (piece.type != 'empty') {
                 // 2. Create a sprite based on piece.type and piece.color
@@ -294,7 +308,7 @@ function initializePieces() {
                 // boardState[row][col].row = row
                 // boardState[row][col].col = col
                 // boardState[row][col].id = spriteName
-                boardState[row][col] = sprite
+                gameScene.data.boardState[row][col] = sprite
                 // 3. Store sprite (or an object containing the sprite) in chessPieceSprites
                 chessPieceSprites.push(sprite); 
                 pieceIds.push(spriteName)
@@ -310,10 +324,10 @@ function initializePieces() {
 
     // 4. Enable dragging for the sprites
     chessPieceSprites.forEach(sprite => this.input.setDraggable(sprite));
-    setOriginalState(boardState)
+    setOriginalState(gameScene.data.boardState)
     //game.data.boardState = boardState
     //console.log(boardState)
-    gameScene.data.boardState = boardState
+    //gameScene.data.boardState = boardState
 
 }
 
@@ -350,20 +364,20 @@ function calculateValidMoves(piece, boardState) {
         case 'rook':
             // Check horizontal directions
             for (let i = col + 1; i < 8; i++) {
-                if (boardState[row][i].type == 'empty') {
+                if (gameScene.data.boardState[row][i].type == 'empty') {
                     validMoves.push({ row, col: i });
                 } else {
-                    if (boardState[row][i].color !== color) {
+                    if (gameScene.data.boardState[row][i].color !== color) {
                         validMoves.push({ row, col: i });
                     }
                     break; 
                 }
             }
             for (let i = col - 1; i >= 0; i--) {
-                if (boardState[row][i].type == 'empty') {
+                if (gameScene.data.boardState[row][i].type == 'empty') {
                     validMoves.push({ row, col: i });
                 } else {
-                    if (boardState[row][i].color !== color) {
+                    if (gameScene.data.boardState[row][i].color !== color) {
                         //console.log(boardState[row][i].color)
                         //console.log(color)
                         validMoves.push({ row, col: i });
@@ -373,20 +387,20 @@ function calculateValidMoves(piece, boardState) {
             }
             // Check vertical directions
             for (let i = row + 1; i < 12; i++) {
-                if (boardState[i][col].type == 'empty') { 
+                if (gameScene.data.boardState[i][col].type == 'empty') { 
                     validMoves.push({ row: i, col });
                 } else { 
-                    if (boardState[i][col].color !== color) { 
+                    if (gameScene.data.boardState[i][col].color !== color) { 
                         validMoves.push({ row: i, col });
                     }
                     break;
                 }
             }
             for (let i = row - 1; i >= 0; i--) {
-                if (boardState[i][col].type == 'empty') { 
+                if (gameScene.data.boardState[i][col].type == 'empty') { 
                     validMoves.push({ row: i, col });
                 } else { 
-                    if (boardState[i][col].color !== color) { 
+                    if (gameScene.data.boardState[i][col].color !== color) { 
                         validMoves.push({ row: i, col });
                     }
                     break;
@@ -403,8 +417,8 @@ function calculateValidMoves(piece, boardState) {
                 let colToCheck = col + offset;
                 // Check top-right diagonal
                 while (inBounds(rowToCheck, colToCheck)) {
-                    if (boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
-                        if (boardState[rowToCheck][colToCheck].color !== color) { 
+                    if (gameScene.data.boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
+                        if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
                             validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
                         }
                         break; // Stop on encountering a piece (friend or foe) 
@@ -419,8 +433,8 @@ function calculateValidMoves(piece, boardState) {
                 rowToCheck = row + offset;
                 colToCheck = col - offset;
                 while (inBounds(rowToCheck, colToCheck)) {
-                    if (boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
-                        if (boardState[rowToCheck][colToCheck].color !== color) { 
+                    if (gameScene.data.boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
+                        if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
                             validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
                         }
                         break; // Stop on encountering a piece (friend or foe) 
@@ -435,8 +449,8 @@ function calculateValidMoves(piece, boardState) {
                 rowToCheck = row - offset;
                 colToCheck = col - offset;
                 while (inBounds(rowToCheck, colToCheck)) {
-                    if (boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
-                        if (boardState[rowToCheck][colToCheck].color !== color) { 
+                    if (gameScene.data.boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
+                        if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
                             validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
                         }
                         break; // Stop on encountering a piece (friend or foe) 
@@ -451,8 +465,8 @@ function calculateValidMoves(piece, boardState) {
                 rowToCheck = row - offset;
                 colToCheck = col + offset;
                 while (inBounds(rowToCheck, colToCheck)) {
-                    if (boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
-                        if (boardState[rowToCheck][colToCheck].color !== color) { 
+                    if (gameScene.data.boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
+                        if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
                             validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
                         }
                         break; // Stop on encountering a piece (friend or foe) 
@@ -475,7 +489,7 @@ function calculateValidMoves(piece, boardState) {
                 const newCol = col + colOffset;
 
                 if (inBounds(newRow, newCol) && 
-                    (boardState[newRow][newCol].type == 'empty' || boardState[newRow][newCol].color != piece.data.list.color)) { // Empty square or enemy piece
+                    (gameScene.data.boardState[newRow][newCol].type == 'empty' || gameScene.data.boardState[newRow][newCol].color != piece.data.list.color)) { // Empty square or enemy piece
                         validMoves.push({ row: newRow, col: newCol });
                         // console.log(boardState[newRow][newCol].color)
                         // console.log(piece.data.list.color)
@@ -485,21 +499,21 @@ function calculateValidMoves(piece, boardState) {
         case 'queen':
              // Horizontal and Vertical Movement (like a rook)
              for (let i = col + 1; i < 8; i++) {
-                if (boardState[row][i].type == 'empty') {
+                if (gameScene.data.boardState[row][i].type == 'empty') {
                     //console.log(boardState)
                     validMoves.push({ row, col: i });
                 } else {
-                    if (boardState[row][i].color !== color) {
+                    if (gameScene.data.boardState[row][i].color !== color) {
                         validMoves.push({ row, col: i });
                     }
                     break; 
                 }
             }
             for (let i = col - 1; i >= 0; i--) {
-                if (boardState[row][i].type == 'empty') {
+                if (gameScene.data.boardState[row][i].type == 'empty') {
                     validMoves.push({ row, col: i });
                 } else {
-                    if (boardState[row][i].color !== color) {
+                    if (gameScene.data.boardState[row][i].color !== color) {
                         //console.log(boardState[row][i].color)
                         //console.log(color)
                         validMoves.push({ row, col: i });
@@ -509,20 +523,20 @@ function calculateValidMoves(piece, boardState) {
             }
             // Check vertical directions
             for (let i = row + 1; i < 12; i++) {
-                if (boardState[i][col].type == 'empty') { 
+                if (gameScene.data.boardState[i][col].type == 'empty') { 
                     validMoves.push({ row: i, col });
                 } else { 
-                    if (boardState[i][col].color !== color) { 
+                    if (gameScene.data.boardState[i][col].color !== color) { 
                         validMoves.push({ row: i, col });
                     }
                     break;
                 }
             }
             for (let i = row - 1; i >= 0; i--) {
-                if (boardState[i][col].type == 'empty') { 
+                if (gameScene.data.boardState[i][col].type == 'empty') { 
                     validMoves.push({ row: i, col });
                 } else { 
-                    if (boardState[i][col].color !== color) { 
+                    if (gameScene.data.boardState[i][col].color !== color) { 
                         validMoves.push({ row: i, col });
                     }
                     break;
@@ -537,8 +551,8 @@ function calculateValidMoves(piece, boardState) {
                 let colToCheck = col + offset;
                 // Check top-right diagonal
                 while (inBounds(rowToCheck, colToCheck)) {
-                    if (boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
-                        if (boardState[rowToCheck][colToCheck].color !== color) { 
+                    if (gameScene.data.boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
+                        if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
                             validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
                         }
                         break; // Stop on encountering a piece (friend or foe) 
@@ -553,8 +567,8 @@ function calculateValidMoves(piece, boardState) {
                 rowToCheck = row + offset;
                 colToCheck = col - offset;
                 while (inBounds(rowToCheck, colToCheck)) {
-                    if (boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
-                        if (boardState[rowToCheck][colToCheck].color !== color) { 
+                    if (gameScene.data.boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
+                        if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
                             validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
                         }
                         break; // Stop on encountering a piece (friend or foe) 
@@ -569,8 +583,8 @@ function calculateValidMoves(piece, boardState) {
                 rowToCheck = row - offset;
                 colToCheck = col - offset;
                 while (inBounds(rowToCheck, colToCheck)) {
-                    if (boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
-                        if (boardState[rowToCheck][colToCheck].color !== color) { 
+                    if (gameScene.data.boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
+                        if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
                             validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
                         }
                         break; // Stop on encountering a piece (friend or foe) 
@@ -585,8 +599,8 @@ function calculateValidMoves(piece, boardState) {
                 rowToCheck = row - offset;
                 colToCheck = col + offset;
                 while (inBounds(rowToCheck, colToCheck)) {
-                    if (boardState[rowToCheck][colToCheck] != 'empty') { // Piece encountered
-                        if (boardState[rowToCheck][colToCheck].color !== color) { 
+                    if (gameScene.data.boardState[rowToCheck][colToCheck] != 'empty') { // Piece encountered
+                        if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
                             validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
                         }
                         break; // Stop on encountering a piece (friend or foe) 
@@ -608,8 +622,8 @@ function calculateValidMoves(piece, boardState) {
                 let newCol = col + colOffset;
 
                 if (inBounds(newRow, newCol)) {
-                    if (boardState[newRow][newCol].type == 'empty' || 
-                        boardState[newRow][newCol].color !== color) { 
+                    if (gameScene.data.boardState[newRow][newCol].type == 'empty' || 
+                    gameScene.data.boardState[newRow][newCol].color !== color) { 
                             validMoves.push({ row: newRow, col: newCol }); 
                     }
                 }
@@ -628,13 +642,13 @@ function calculateValidMoves(piece, boardState) {
             //console.log(oneStepForward)
             //console.log(boardState[oneStepForward][col])
             //console.log(boardState)
-            if (inBounds(oneStepForward, col) && boardState[oneStepForward][col].type == 'empty') {
+            if (inBounds(oneStepForward, col) && gameScene.data.boardState[oneStepForward][col].type == 'empty') {
                 validMoves.push({ row: oneStepForward, col: currentCol });
             }
 
             const twoStepsForward = row + (2 * direction);
 
-            if (inBounds(twoStepsForward, col) && boardState[twoStepsForward][col].type == 'empty' && 
+            if (inBounds(twoStepsForward, col) && gameScene.data.boardState[twoStepsForward][col].type == 'empty' && 
                 piece.data.list.startRow === row) { // Check if it's the first move
                     validMoves.push({ row: twoStepsForward, col: currentCol });
             }
@@ -693,7 +707,7 @@ function handleStartTurn(boardState) { // Assuming currentPlayer is a Player obj
 
     for (let row = 0; row < 12; row++) {
         for (let col = 0; col < 8; col++) {
-            const square = boardState[row][col];
+            const square = gameScene.data.boardState[row][col];
             // console.log(square)
             // console.log(piece.color)
             // console.log(currentPlayer.color)
@@ -725,7 +739,7 @@ function handleEndTurn(boardState) { // Assuming currentPlayer is a Player objec
 
     for (let row = 0; row < 12; row++) {
         for (let col = 0; col < 8; col++) {
-            const square = boardState[row][col];
+            const square = gameScene.data.boardState[row][col];
             // console.log(square)
             // console.log(piece.color)
             // console.log(currentPlayer.color)
@@ -927,7 +941,7 @@ function updateBuybackUI(scene, piece) {
     sprite.data.set('id', spriteName)
     scene.input.setDraggable(sprite)
 
-    boardState[row][col].color = piece.color
+    gameScene.data.boardState[row][col].color = piece.color
 
     // 3. Store sprite (or an object containing the sprite) in chessPieceSprites
     chessPieceSprites.push(sprite); 
@@ -999,7 +1013,7 @@ function handleBuybackClick(event, boardState) {
 }
 
 function oppColor() {
-    if(currentPlayer = 'white') {
+    if(currentPlayer.color == 'white') {
         return 'black'
     } else {
         return 'white'
@@ -1028,6 +1042,40 @@ function cloneSprite(sprite) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    addInfoPanel()
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session');
+    const socket = io();
+
+    if (sessionId) {
+        socket.emit('joinSession', sessionId);
+        
+        socket.on('playerColor', (color) => {
+            console.log('You are playing as:', color);
+            // Update the UI to show the player's color
+        });
+
+        socket.on('sessionState', (gameState) => {
+            updateGame(gameState);
+        });
+        
+        socket.on('startGame', () => {
+            console.log('Both players joined. Game starts!');
+            // Additional logic to start the game
+        });
+    } else {
+        console.error('No session ID provided.');
+    }
+    
+
+    function updateGame(gameState) {
+        console.log('updating gamestate')
+        console.log(gameState)
+        //gameScene.data.boardState = gameState
+    }
+});
+
+function addInfoPanel() {
     const infoIcon = document.querySelector('.info-icon');
     const dropdownContent = document.querySelector('.dropdown-content');
 
@@ -1090,7 +1138,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-});
+}
 
-
+function sendGameAction(action) {
+    const sessionId = new URLSearchParams(window.location.search).get('session');
+    if (sessionId) {
+        socket.emit('gameAction', { sessionId, action });
+    } else {
+        console.error('Session ID is missing, cannot send action');
+    }
+}
 
