@@ -56,13 +56,13 @@ io.on('connection', (socket) => {
         }
 
         // Ensure the first player is white and the second is black
-        const playerColor = session.players.length === 0 ? 'white' : 'black';
+        const playerColor = session.players.length == 0 ? 'white' : 'black';
         session.players.push({ id: socket.id, color: playerColor });
         socket.join(sessionId);
-        socket.emit('playerColor', playerColor); // Inform the player of their color
+        //socket.emit('playerColor', playerColor); // Inform the player of their color
         socket.emit('sessionState', session.gameState); // Send initial game state
 
-        if (session.players.length === 2) {
+        if (session.players.length == 2) {
             io.to(sessionId).emit('startGame');
         } 
     });
@@ -77,10 +77,10 @@ io.on('connection', (socket) => {
         }
         
         console.log('Action received from player:', action.playerColor, 'in session:', sessionId);
-        if (session.currentPlayer === action.playerColor) {
+        if (session.currentPlayer == action.playerColor) {
             processAction(session, action);
-            session.currentPlayer = session.currentPlayer === 'white' ? 'black' : 'white';
-            io.to(sessionId).emit('sessionState', session.gameState);
+            session.currentPlayer = session.currentPlayer == 'white' ? 'black' : 'white';
+            io.to(session).emit('sessionState', session.gameState);
         } else {
             socket.emit('error', 'Not your turn.');
         }
@@ -93,12 +93,25 @@ io.on('connection', (socket) => {
 
     socket.on('playerColor', (color) => {
         console.log(`You are playing as: ${color}`);
-        if (color === 'white') {
+        if (color == 'white') {
             // Setup white player
         } else {
             // Setup black player
         }
     });
+
+
+    socket.on('sessionState', (gameState) => {
+        updateGame(gameState);
+    });
+
+    socket.on('startGame', () => {
+        console.log('Both players joined. Game starts!');
+        // Additional logic to start the game
+    });
+
+
+
     
 });
 
@@ -108,6 +121,13 @@ function processAction(session, action) {
     // Update the session.gameState based on the action
     // This is very specific to your game mechanics
     console.log(`Processing action for session: ${session}`);
+    //socket.emit('sessionState', session.gameState);
+}
+
+function updateGame(gameScene) {
+    console.log('updating gamestate')
+    console.log(gameScene.data.boardState)
+    gameScene.data.boardState = gameState
 }
 
 server.listen(port, () => {

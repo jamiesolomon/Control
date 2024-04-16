@@ -30,6 +30,7 @@ class Player {
       this.pointIncome = 0;
     }
   }
+  
 const player1 = new Player();
 player1.color = 'white';
 const player2 = new Player();
@@ -234,9 +235,6 @@ function create() {
             // Re-render the board if necessary
             //updatePlayerStatsUI()
             handleEndTurn(boardState)
-            switchTurns()
-            
-            handleStartTurn(boardState)
             const action = {
                 playerColor: currentPlayer.color,
                 type: 'move',
@@ -246,6 +244,13 @@ function create() {
                 }    
             }
             sendGameAction(action)
+
+            const sessionId = new URLSearchParams(window.location.search).get('session');
+
+            
+            switchTurns()
+            handleStartTurn(boardState)
+            
             // console.log(player1)
             // console.log(player2)
             // (Potentially) updateBlocking(boardState); 
@@ -1047,31 +1052,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const sessionId = urlParams.get('session');
     const socket = io();
 
-    if (sessionId) {
-        socket.emit('joinSession', sessionId);
-        
-        socket.on('playerColor', (color) => {
-            console.log('You are playing as:', color);
-            // Update the UI to show the player's color
-        });
-
-        socket.on('sessionState', (gameState) => {
-            updateGame(gameState);
-        });
-        
-        socket.on('startGame', () => {
-            console.log('Both players joined. Game starts!');
-            // Additional logic to start the game
-        });
-    } else {
-        console.error('No session ID provided.');
-    }
     
 
-    function updateGame(gameState) {
-        console.log('updating gamestate')
-        console.log(gameState)
-        //gameScene.data.boardState = gameState
+    if (sessionId) {
+        socket.emit('joinSession', sessionId);
+        playerColor = currentPlayer.color
+        socket.emit('playerColor', playerColor); // Inform the player of their color
+        
+          
+    } else {
+        console.error('No session ID provided.');
     }
 });
 
