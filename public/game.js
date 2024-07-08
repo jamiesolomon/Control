@@ -184,6 +184,12 @@ function create() {
         }
     });
 
+    socket.on('updateUI', (board) => {
+        console.log('The other player moved!!!');
+        console.log(board); // Log the updated board data
+        // Update your UI with the new board state here
+    });
+
 
         
 
@@ -751,14 +757,14 @@ function buyBackPiece(player, piece) {
     return false;
 }
 
-function setOriginalState(boardState) {
+function setOriginalState(board) {
     let originalPieces = []
     let i = 0
     for(row = 0; row < 12; row++) {
 
         for(col = 0; col < 8; col++) {
             //console.log(boardState)
-            if(boardState[row][col].type != 'empty') {
+            if(board[row][col].type != 'empty') {
                 originalPieces.push(chessPieceSprites[i])
                 i++
             }
@@ -955,14 +961,15 @@ function movePiece(gameObject, targetRow, targetCol, newX, newY) {
     console.log('---------------------------------------------------')
 
     handleEndTurn(gameScene.data.boardState);
-    sendGameAction({
+    const action = {
         playerColor: currentPlayer.color,
         type: 'move',
         details: {
             from: { row: tempRow, col: tempCol },
             to: { row: targetRow, col: targetCol }
         }
-    });
+    }
+    sendGameAction(action, boardState);
 
     switchTurns();
     handleStartTurn(gameScene.data.boardState);
@@ -1023,6 +1030,9 @@ function cloneSprite(sprite) {
     return clonedSprite;
 }
 
+
+
+
 document.addEventListener('DOMContentLoaded', () => {
     addInfoPanel()
     const urlParams = new URLSearchParams(window.location.search);
@@ -1033,10 +1043,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (sessionId) {
         socket.emit('joinSession', sessionId);
-        playerColor = currentPlayer.color
-        socket.emit('playerColor', playerColor); // Inform the player of their color
-        
-          
+
+        socket.on('updateUI', (board) => {
+            console.log('The other player moved!!!');
+            console.log(board); // Log the updated board data
+            // Update your UI with the new board state here
+            // For example:
+            // updateBoardUI(board);
+        });
+
+        socket.on('sessionState', (gameState) => {
+            console.log('Initial game state received:', gameState);
+            // Initialize your game state with the received game state
+        });
+
+        socket.on('startGame', () => {
+            console.log('Both players joined. Game starts!');
+            // Additional logic to start the game
+        });
     } else {
         console.error('No session ID provided.');
     }
@@ -1107,10 +1131,15 @@ function addInfoPanel() {
     }
 }
 
-function sendGameAction(action) {
+function sendGameAction(action, boardState) {
     const sessionId = new URLSearchParams(window.location.search).get('session');
+    console.log('-----------Sending Game Action to server--------------')
+    console.log(action)
+    console.log('------------------------------------------------------')
+
     if (sessionId) {
-        socket.emit('gameAction', { sessionId, action });
+        const data = { sessionId, boardState };
+        socket.emit('updateBoardState', data);
     } else {
         console.error('Session ID is missing, cannot send action');
     }
