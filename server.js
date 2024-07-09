@@ -21,7 +21,8 @@ app.get('/new-session', (req, res) => {
 
     sessions[sessionId] = {
         players: [],
-        boardState: board.squares,  // Initialize your game state here
+        boardState: board.squares,
+        chessPieceSprites: [],  
         currentPlayer: 'white'  // Default first player
     };
     res.json({ sessionId });
@@ -53,7 +54,7 @@ io.on('connection', (socket) => {
         const playerColor = session.players.length == 1 ? 'white' : 'black';
         session.players.push({ id: socket.id, color: playerColor });
         socket.join(sessionId);
-        socket.emit('sessionState', session.boardState); // Send initial game state
+        socket.emit('sessionState', { boardState: session.boardState, chessPieceSprites: session.chessPieceSprites }); // Send initial game state
 
         if (session.players.length == 2) {
             io.to(sessionId).emit('startGame');
@@ -79,13 +80,14 @@ io.on('connection', (socket) => {
     });
 
     socket.on('updateBoardState', (data) => {
-        console.log(data);
+        //console.log(data);
 
         const sessionId = data.sessionId;
         const board = data.boardState;
+        const pieceSprites = data.chessPieceSprites;
 
         console.log('Updating board state for session:', sessionId);
-        console.log(board);
+        //console.log(board);
         const session = sessions[sessionId];
 
         if (!session) {
@@ -94,7 +96,9 @@ io.on('connection', (socket) => {
         }
 
         session.boardState = board;
-        io.to(sessionId).emit('updateUI', board);
+        session.chessPieceSprites = pieceSprites;
+
+        socket.broadcast.to(sessionId).emit('updateUI', { board, pieceSprites });
     });
 
     socket.on('disconnect', () => {
