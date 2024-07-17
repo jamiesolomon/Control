@@ -175,11 +175,27 @@ function create() {
         const targetRow = Math.floor(gameObject.y / squareSize); 
         const targetCol = Math.floor(gameObject.x / squareSize);
     
-        if (isValidMove(gameObject, targetRow, targetCol, gameScene.data.boardState, currentPlayer)) {
+        if (isValidMove(gameObject, targetRow, targetCol, gameScene.data.boardState, currentPlayer) && gameObject.data.list.color == playerColor) {
             const capturedPiece = gameScene.data.boardState[targetRow][targetCol];
+            console.log(capturedPiece)
     
             if (capturedPiece.type !== 'empty' && capturedPiece.color !== currentPlayer.color) {
-                capture(capturedPiece);
+                const action = {
+                    pieceId: gameObject.data.list.id,
+                    playerColor: currentPlayer.color,
+                    type: 'capture',
+                    details: {
+                        from: { row: gameObject.data.list.row, col: gameObject.data.list.col },
+                        to: { row: targetRow, col: targetCol }
+                    },
+                    capturedPieceId: capturedPiece.data.list.id
+                }
+
+                capture(gameObject, capturedPiece);
+                handleEndTurn()
+                sendGameAction(action, boardState)
+                switchTurns()
+                return console.log("Captured piece: ", capturedPiece)
             }
 
             const action = {
@@ -200,6 +216,7 @@ function create() {
                 row: gameObject.data.list.row,
                 col: gameObject.data.list.col
             }
+
     
             movePiece(gameObject, targetRow, targetCol);
             handleEndTurn(gameScene.data.boardState);
@@ -598,7 +615,7 @@ function calculateValidMoves(piece, boardState) {
                 //console.log(game.data.boardState[diagRow][diagCol])
                 if (inBounds(diagRow, diagCol) && 
                     gameScene.data.boardState[diagRow][diagCol].type != 'empty' && 
-                    gameScene.data.boardState[diagRow][diagCol].color != piece.color) {
+                    gameScene.data.boardState[diagRow][diagCol].data.list.color != piece.data.list.color) {
                         validMoves.push({ row: diagRow, col: diagCol });
                 }
             } 
@@ -1018,20 +1035,34 @@ function movePiece(gameObject, targetRow, targetCol) {
     //handleStartTurn(gameScene.data.boardState);
 }
 
-function capture(capturedPiece) {
+function capture(piece, capturedPiece) {
+    console.log(capturedPiece)
+
+    const targetRow = capturedPiece.data.list.row
+    const targetCol = capturedPiece.data.list.col
+
     console.log('-------------capturing----------')
-    let index = -1; // Initialize index with an invalid value
+    let captureIndex = -1; // Initialize index with an invalid value 
     
     for (let i = 0; i < chessPieceSprites.length; i++) {
-        if (chessPieceSprites[i].id == capturedPiece.id) {
-            index = i;
+        if (chessPieceSprites[i].data.list.id == capturedPiece.data.list.id) {
+            captureIndex = i;
             break; // Exit the loop once the captured piece is found
         }
     }
 
-    if (index !== -1) {
+    if (captureIndex !== -1) {
+
         // Hide the sprite and force a scene update
-        chessPieceSprites[index].setVisible(false); // Hide the sprite
+        chessPieceSprites[captureIndex].setVisible(false); // Hide the sprite
+
+        gameScene.data.boardState[capturedPiece.data.list.row][capturedPiece.data.list.col] = { type: "empty" } 
+        boardState = gameScene.data.boardState
+
+        movePiece(piece, targetRow, targetCol)
+
+
+
         //chessPieceSprites[index].destroy(); // Remove the sprite from the game completely
 
         // Remove the sprite from the array
@@ -1115,10 +1146,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
 
             const pieceId = action.pieceId
+            
             let piece = null
+            let capturedPiece = null
+            
 
             for (let chessPiece of chessPieceSprites){
-                console.log(chessPiece)
+                //console.log(chessPiece)
                 if (chessPiece.data.list.id == pieceId){
                     console.log('Piece Found: ')
                     piece = chessPiece
@@ -1127,6 +1161,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
             }
+
+            if (action.type == 'capture') {
+                console.log(action)
+                capturedPieceId = action.capturedPieceId
+                console.log('Capturing piece: ', capturedPieceId)
+
+                for (let chessPiece of chessPieceSprites){
+                    //console.log(chessPiece)
+                    if (chessPiece.data.list.id == capturedPieceId){
+                        console.log('Captured Piece Found: ')
+                        capturedPiece = chessPiece
+                        console.log(capturedPiece)
+                        break;
+                    }
+
+                }
+            }
+
+
             if (piece == null){
                 console.log('error: Piece not found for some reason')
             } 
@@ -1134,9 +1187,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
             console.log('action.playerColor: ', action.playerColor)
             console.log('playerColor: ', playerColor)
-            if (action.playerColor != playerColor){
+            if (action.playerColor != playerColor && action.type == 'move'){
                 console.log('Processing opponent move');
                 movePiece(piece, action.details.to.row, action.details.to.col);
+                switchTurns();
+                handleStartTurn();
+            }
+            else if (action.playerColor != playerColor && action.type == 'capture') {
+                console.log('Processing opponent capture');
+                capture(piece, capturedPiece)
                 switchTurns();
                 handleStartTurn();
             }
