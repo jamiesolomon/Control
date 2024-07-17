@@ -653,7 +653,7 @@ function switchTurns() {
         
 }
 
-function handleStartTurn(boardState) { // Assuming currentPlayer is a Player object
+function handleStartTurn() { // Assuming currentPlayer is a Player object
 
     let income = 0
     let vp = 0
@@ -666,7 +666,7 @@ function handleStartTurn(boardState) { // Assuming currentPlayer is a Player obj
             // console.log(square)
             // console.log(piece.color)
             // console.log(currentPlayer.color)
-            if (square.type != 'empty' && square.color == currentPlayer.color) { // Check for current player's piece
+            if (square.type != 'empty' && square.data.list.color == currentPlayer.color) { // Check for current player's piece
                 const squareColor = boardColors[row][col]; 
                 if (squareColor == 'yellow') {
                     //add victoryPoints
