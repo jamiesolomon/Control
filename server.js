@@ -51,55 +51,43 @@ io.on('connection', (socket) => {
             return;
         }
 
-        const playerColor = session.players.length == 1 ? 'white' : 'black';
+        const playerColor = session.players.length == 1 ? 'black' : 'white';
+        console.log('Playing as: ', playerColor)
         session.players.push({ id: socket.id, color: playerColor });
         socket.join(sessionId);
-        socket.emit('sessionState', { boardState: session.boardState, chessPieceSprites: session.chessPieceSprites }); // Send initial game state
+        socket.emit('sessionState', { boardState: session.boardState, chessPieceSprites: session.chessPieceSprites, playerColor }); // Send initial game state
 
         if (session.players.length == 2) {
             io.to(sessionId).emit('startGame');
         }
     });
 
-    socket.on('gameAction', (data) => {
-        const { sessionId, action } = data;
-        const session = sessions[sessionId];
-
-        if (!session) {
-            socket.emit('error', 'Invalid session.');
-            return;
-        }
-
-        if (session.currentPlayer == action.playerColor) {
-            processAction(session, action);
-            session.currentPlayer = session.currentPlayer == 'white' ? 'black' : 'white';
-            io.to(sessionId).emit('sessionState', session.boardState);
-        } else {
-            socket.emit('error', 'Not your turn.');
-        }
-    });
 
     socket.on('updateBoardState', (data) => {
-        //console.log(data);
-
         const sessionId = data.sessionId;
         const board = data.boardState;
-        const pieceSprites = data.chessPieceSprites;
-
+        //const pieceSprites = data.serializedSprites;
+        const action = data.action;
+    
         console.log('Updating board state for session:', sessionId);
-        //console.log(board);
+        console.log('Received Board State:', board);
+        // console.log('Received Piece Sprites:', pieceSprites);
+        console.log('Received Action:', action);
+    
         const session = sessions[sessionId];
-
+    
         if (!session) {
             socket.emit('error', 'Invalid session.');
             return;
         }
-
+    
         session.boardState = board;
-        session.chessPieceSprites = pieceSprites;
-
-        socket.broadcast.to(sessionId).emit('updateUI', { board, pieceSprites });
+        //session.chessPieceSprites = pieceSprites;
+    
+        console.log('Broadcasting updateUI event');
+        io.to(sessionId).emit('updateUI', { action });
     });
+    
 
     socket.on('disconnect', () => {
         console.log(`Player ${socket.id} disconnected`);
