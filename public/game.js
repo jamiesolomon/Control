@@ -1184,7 +1184,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Received updateUI event (Which means the other player moved!!!!)');
             
             
-            console.log('Received Action:', action);
+            console.log('Received Action:');
+            console.log(action)
             console.log('--------------Logging chessPieceSrites-------------------');
             console.log(chessPieceSprites);
             console.log('----------------------------------------------------------');
@@ -1195,6 +1196,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             let piece = null
             let capturedPiece = null
+            const actionType = action.type
+            actionColor = action.playerColor
             
             
 
@@ -1209,7 +1212,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             }
 
-            if (action.type == 'capture') {
+            if (actionType == 'capture') {
                 console.log(action)
                 capturedPieceId = action.capturedPieceId
                 console.log('Capturing piece: ', capturedPieceId)
@@ -1226,7 +1229,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            if (action.type == 'buy' && action.pieceColor != playerColor) {
+            if (actionType == 'buy' && actionColor != playerColor) {
                 console.log('Opponent bought a Piece!!!!: ', piece)
                 console.log(action)
                 updateBuybackUI(gameScene, piece)
@@ -1242,16 +1245,16 @@ document.addEventListener('DOMContentLoaded', () => {
             } 
 
         
-            console.log('action.playerColor: ', action.playerColor)
+            console.log('action.playerColor: ', actionColor)
             console.log('playerColor: ', playerColor)
-            if (action.playerColor != playerColor && action.type == 'move'){
+            if (actionColor != playerColor && actionType == 'move'){
                 console.log('Processing opponent move');
                 movePiece(piece, action.details.to.row, action.details.to.col);
                 handleEndTurn()
                 switchTurns();
                 handleStartTurn();
             }
-            else if (action.playerColor != playerColor && action.type == 'capture') {
+            else if (actionColor != playerColor && actionType == 'capture') {
                 console.log('Processing opponent capture');
                 capture(piece, capturedPiece)
                 handleEndTurn()
