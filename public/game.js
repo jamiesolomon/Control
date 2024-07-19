@@ -1192,6 +1192,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             let piece = null
             let capturedPiece = null
+            console.log('--------------Logging chessPieceSrites-------------------')
+            console.log(chessPieceSprites)
+            console.log('----------------------------------------------------------')
             
 
             for (let chessPiece of chessPieceSprites){
