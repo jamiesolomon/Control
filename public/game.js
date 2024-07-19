@@ -1185,9 +1185,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             
             console.log('Received Action:', action);
-            console.log('--------------Logging chessPieceSrites-------------------')
-            console.log(chessPieceSprites)
-            console.log('----------------------------------------------------------')
+            console.log('--------------Logging chessPieceSrites-------------------');
+            console.log(chessPieceSprites);
+            console.log('----------------------------------------------------------');
             
             
 
