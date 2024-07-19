@@ -20,6 +20,7 @@ let playerColor = ''
 let player = ''
 
 let turnDisplay = null
+let playerColorDisplay = null
 
 //is this important?
 let pieceButton = null
@@ -132,13 +133,16 @@ function create() {
                     initializePieces.call(this, boardState); 
                     populateBuybackUI.call(this, boardState)
                     turnDisplay = document.getElementById('turn-display');
+                    
                     console.log('---------gameScene Object---------')
                     console.log(gameScene);
                     console.log('----------------------------------')
                     //setOriginalState(boardState)
-                    //console.log(turnDisplay)         
+                    //console.log(turnDisplay)        
                 });
             }
+    
+        
 
         // Enable drag for all sprites
         //this.input.setDraggable(chessPieceSprites);
@@ -241,6 +245,7 @@ function create() {
 
     // Add a temperary red square:
     //this.add.image(200, 300, 'placeholder'); 
+    
 
        
 }
@@ -747,6 +752,11 @@ function updatePlayerStatsUI() {
 
 }
 
+function sendPlayerColorDisplay() {
+    playerColorDisplay = document.getElementById('playerColorDisplay')
+    playerColorDisplay.textContent = `You are playing as color: ${player.color}`
+}
+
 function createBaseColorBoard() {
     const board = [
         ['regular', 'regular', 'regular', 'regular', 'regular', 'regular', 'regular', 'regular'],
@@ -893,7 +903,7 @@ function updateBuybackUI(scene, piece) {
     sprite.data.set('row', row); // Store row and column 
     sprite.data.set('col', col);
     sprite.data.set('startRow', row)
-    sprite.data.set('color', piece.color)
+    sprite.data.set('color', piece.data.list.color)
 
     // if (pieceIds.includes(spriteName)) {
     //     
@@ -915,6 +925,7 @@ function updateBuybackUI(scene, piece) {
     // 3. Store sprite (or an object containing the sprite) in chessPieceSprites
     chessPieceSprites.push(sprite); 
     pieceIds.push(spriteName)
+    boardState = gameScene.data.boardState
     //console.log(boardState)
 
 }
@@ -1155,6 +1166,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 console.log('Error, player color not recognized: ', playerColor)
             }
+            sendPlayerColorDisplay()
 
             //repaint(boardState, chessPieceSprites); // Initialize the board with the received game state
         });
@@ -1163,6 +1175,10 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Both players joined. Game starts!');
             // Additional logic to start the game
         });
+
+        socket.on('updatePlayerColorDisplays', () => {
+            
+        })
 
         socket.on('updateUI', ({ action }) => {
             console.log('Received updateUI event (Which means the other player moved!!!!)');

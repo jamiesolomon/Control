@@ -56,9 +56,11 @@ io.on('connection', (socket) => {
         session.players.push({ id: socket.id, color: playerColor });
         socket.join(sessionId);
         socket.emit('sessionState', { boardState: session.boardState, chessPieceSprites: session.chessPieceSprites, playerColor }); // Send initial game state
+        socket.emit('updatePlayerColorDisplays')
 
         if (session.players.length == 2) {
             io.to(sessionId).emit('startGame');
+            io.to(sessionId).emit('updatePlayerColorDisplays')
         }
     });
 
