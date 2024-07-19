@@ -1155,7 +1155,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             boardState = gameState.boardState;
             //gameScene.data.boardState = gameState.boardState
-            chessPieceSprites = gameState.chessPieceSprites;
+            //gameState.chessPieceSprites = chessPieceSprites;
             console.log(gameState)
             console.log('PLAYER COLOR RECIEVED: ', gameState.playerColor)
             playerColor = gameState.playerColor
