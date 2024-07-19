@@ -17,6 +17,7 @@ let boardState = null
 let gameScene = null;
 let pieceCount = 1
 let playerColor = ''
+let player = ''
 
 let turnDisplay = null
 
@@ -192,9 +193,12 @@ function create() {
                 }
 
                 capture(gameObject, capturedPiece);
-                handleEndTurn()
+                //handleEndTurn()
                 sendGameAction(action, boardState)
+                handleEndTurn()
                 switchTurns()
+                handleStartTurn()
+                
                 return console.log("Captured piece: ", capturedPiece)
             }
 
@@ -219,9 +223,12 @@ function create() {
 
     
             movePiece(gameObject, targetRow, targetCol);
-            handleEndTurn(gameScene.data.boardState);
+            //handleEndTurn(gameScene.data.boardState);
             sendGameAction(action, boardState);
+            handleEndTurn()
             switchTurns();
+            handleStartTurn()
+            
         } else {
             // Handle invalid move (snap back into place, etc.)
             gameObject.x = gameObject.startPosition.x;
@@ -653,7 +660,8 @@ function switchTurns() {
         
 }
 
-function handleStartTurn() { // Assuming currentPlayer is a Player object
+function handleStartTurn() { // currentPlayer is a Player object
+    console.log('Handeling income and vp calculations...')
 
     let income = 0
     let vp = 0
@@ -698,7 +706,7 @@ function handleEndTurn(boardState) { // Assuming currentPlayer is a Player objec
             // console.log(square)
             // console.log(piece.color)
             // console.log(currentPlayer.color)
-            if (square.type != 'empty' && square.color == currentPlayer.color) { // Check for current player's piece
+            if (square.type != 'empty' && square.data.list.color == currentPlayer.color) { // Check for current player's piece
                 const squareColor = boardColors[row][col]; 
                 if (squareColor == 'yellow') {
                     //add victoryPoints income
@@ -945,6 +953,8 @@ function getImagePath(type, color) {
 }
 
 function handleBuybackClick(event) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session');
     // Check if event and event.data exist
     if (!event || !event.data || !event.data.list) {
         console.log(event)
@@ -975,6 +985,16 @@ function handleBuybackClick(event) {
     if (buyBackPiece(player, piece)) {
         // Update buyback UI if successful
         console.log('Buy was successful');
+
+        const data = {
+            type: 'buy',
+            pieceId: piece.data.list.id,
+            sessionId: sessionId,
+            pieceColor: piece.data.list.color
+        }
+
+        socket.emit('buy', data)
+        handleEndTurn()
         switchTurns();
         handleStartTurn();
         return true;
@@ -1128,6 +1148,13 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(gameState)
             console.log('PLAYER COLOR RECIEVED: ', gameState.playerColor)
             playerColor = gameState.playerColor
+            if (playerColor == 'white') {
+                player = player1
+            } else if (playerColor == 'black') {
+                player = player2
+            } else {
+                console.log('Error, player color not recognized: ', playerColor)
+            }
 
             //repaint(boardState, chessPieceSprites); // Initialize the board with the received game state
         });
@@ -1179,6 +1206,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            if (action.type == 'buy' && action.pieceColor != playerColor) {
+                console.log('Opponent bought a Piece!!!!: ', piece)
+                console.log(action)
+                updateBuybackUI(gameScene, piece)
+                handleEndTurn()
+                switchTurns();
+                handleStartTurn();
+
+            }
+
 
             if (piece == null){
                 console.log('error: Piece not found for some reason')
@@ -1190,12 +1227,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (action.playerColor != playerColor && action.type == 'move'){
                 console.log('Processing opponent move');
                 movePiece(piece, action.details.to.row, action.details.to.col);
+                handleEndTurn()
                 switchTurns();
                 handleStartTurn();
             }
             else if (action.playerColor != playerColor && action.type == 'capture') {
                 console.log('Processing opponent capture');
                 capture(piece, capturedPiece)
+                handleEndTurn()
                 switchTurns();
                 handleStartTurn();
             }
@@ -1301,6 +1340,21 @@ function sendGameAction(action, boardState) {
     }
 }
 
+function sendBuy(data) {
+    const sessionId = new URLSearchParams(window.location.search).get('session');
+    console.log('-----------Sending Buy to server--------------');
+    console.log(data);
+    console.log('------------------------------------------------------');
+
+
+
+
+    if (sessionId) {
+        socket.emit('buy', data);
+        } else {
+            console.error('Session ID is missing, cannot send action');
+            }
+}
 
 
 

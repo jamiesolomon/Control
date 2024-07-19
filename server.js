@@ -87,6 +87,17 @@ io.on('connection', (socket) => {
         console.log('Broadcasting updateUI event');
         io.to(sessionId).emit('updateUI', { action });
     });
+
+    socket.on('buy', (data) => {
+        const sessionId = data.sessionId;
+        const session = sessions[sessionId];
+        const action = data
+
+
+
+        io.to(sessionId).emit('updateUI', { action });
+        
+    })
     
 
     socket.on('disconnect', () => {
