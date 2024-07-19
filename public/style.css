@@ -109,12 +109,12 @@ body, html {
 }
 
 .info-icon {
-    font-size: 24px;
+    font-size: 20px;
     cursor: pointer;
-    position: absolute;
+    position: relative;
     bottom: 10px;
-    left: 10px;
     color: #fff; /* Adjust based on your hero section's color scheme */
+    min-width: 200px
 }
 
 .dropdown-content {

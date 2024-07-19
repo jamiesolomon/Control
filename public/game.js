@@ -4,21 +4,30 @@
 
 const scale = 0.4
 const squareSize = 192 * scale
-let chessPieceSprites = [];
-let gamePieces = []
-const boardColors = createBaseColorBoard()
-let originalPiecePositions = []
-let boardState = null
-let turnDisplay = null
-let pieceButton = null
 const greenVal = 0.5
 const yellowVal = 1
-let gameScene = null;
+const boardColors = createBaseColorBoard()
+
+
+let chessPieceSprites = [];
+let gamePieces = []
 let pieceIds = []
+let originalPiecePositions = []
+let boardState = null
+let gameScene = null;
 let pieceCount = 1
+let playerColor = ''
+let player = ''
+
+let turnDisplay = null
+let playerColorDisplay = null
+
+//is this important?
+let pieceButton = null
+
+
+
 const socket = io(); // This should be accessible across your script
-
-
 
 // INSTANTIATE PLAYERS IN SERVER NOT GAME.JS FILE!!!
 
@@ -124,13 +133,16 @@ function create() {
                     initializePieces.call(this, boardState); 
                     populateBuybackUI.call(this, boardState)
                     turnDisplay = document.getElementById('turn-display');
+                    
                     console.log('---------gameScene Object---------')
                     console.log(gameScene);
                     console.log('----------------------------------')
                     //setOriginalState(boardState)
-                    //console.log(turnDisplay)         
+                    //console.log(turnDisplay)        
                 });
             }
+    
+        
 
         // Enable drag for all sprites
         //this.input.setDraggable(chessPieceSprites);
@@ -161,22 +173,66 @@ function create() {
         
 
     this.input.on('dragend', function (pointer, gameObject) {
-        const snapSize = squareSize / 2; // Assuming squares as your snapping targets
-    
-        const newX = Math.floor(gameObject.x / squareSize) * squareSize + snapSize;
-        const newY = Math.floor(gameObject.y / squareSize) * squareSize + snapSize;
+        console.log('Calling dragend for :')
+        console.log(gameObject)
+        
     
         const targetRow = Math.floor(gameObject.y / squareSize); 
         const targetCol = Math.floor(gameObject.x / squareSize);
     
-        if (isValidMove(gameObject, targetRow, targetCol, gameScene.data.boardState, currentPlayer)) {
+        if (isValidMove(gameObject, targetRow, targetCol, gameScene.data.boardState, currentPlayer) && gameObject.data.list.color == playerColor) {
             const capturedPiece = gameScene.data.boardState[targetRow][targetCol];
+            console.log(capturedPiece)
     
-            if (capturedPiece.type !== 'empty' && capturedPiece.data.list.color !== currentPlayer.color) {
-                capture(capturedPiece);
+            if (capturedPiece.type !== 'empty' && capturedPiece.color !== currentPlayer.color) {
+                const action = {
+                    pieceId: gameObject.data.list.id,
+                    playerColor: currentPlayer.color,
+                    type: 'capture',
+                    details: {
+                        from: { row: gameObject.data.list.row, col: gameObject.data.list.col },
+                        to: { row: targetRow, col: targetCol }
+                    },
+                    capturedPieceId: capturedPiece.data.list.id
+                }
+
+                capture(gameObject, capturedPiece);
+                //handleEndTurn()
+                sendGameAction(action, boardState)
+                handleEndTurn()
+                switchTurns()
+                handleStartTurn()
+                
+                return console.log("Captured piece: ", capturedPiece)
             }
+
+            const action = {
+                pieceId: gameObject.data.list.id,
+                playerColor: currentPlayer.color,
+                type: 'move',
+                details: {
+                    from: { row: gameObject.row, col: gameObject.col },
+                    to: { row: targetRow, col: targetCol }
+                }
+            }
+            const serializedPiece = {
+                type: gameObject.type,
+                x: gameObject.x, 
+                y: gameObject.y,
+                id: gameObject.data.list.id,
+                color: gameObject.data.list.color,
+                row: gameObject.data.list.row,
+                col: gameObject.data.list.col
+            }
+
     
-            movePiece(gameObject, targetRow, targetCol, newX, newY);
+            movePiece(gameObject, targetRow, targetCol);
+            //handleEndTurn(gameScene.data.boardState);
+            sendGameAction(action, boardState);
+            handleEndTurn()
+            switchTurns();
+            handleStartTurn()
+            
         } else {
             // Handle invalid move (snap back into place, etc.)
             gameObject.x = gameObject.startPosition.x;
@@ -189,11 +245,15 @@ function create() {
 
     // Add a temperary red square:
     //this.add.image(200, 300, 'placeholder'); 
+    
 
        
 }
 
 function initializePieces() {
+    console.log('-------------------------THIS Before:-----------------------------------')
+    console.log(this)
+    console.log('------------------------------------------------------------------------')
 
     // 1. Iterate through boardState to access piece data
     for (let row = 0; row < gameScene.data.boardState.length; row++) {
@@ -232,6 +292,9 @@ function initializePieces() {
     // 4. Enable dragging for the sprites
     chessPieceSprites.forEach(sprite => this.input.setDraggable(sprite));
     setOriginalState(gameScene.data.boardState);
+    console.log('-------------------------THIS After:-----------------------------------')
+    console.log(this)
+    console.log('-----------------------------------------------------------------------')
 }
 
 
@@ -602,7 +665,8 @@ function switchTurns() {
         
 }
 
-function handleStartTurn(boardState) { // Assuming currentPlayer is a Player object
+function handleStartTurn() { // currentPlayer is a Player object
+    console.log('Handeling income and vp calculations...')
 
     let income = 0
     let vp = 0
@@ -615,7 +679,7 @@ function handleStartTurn(boardState) { // Assuming currentPlayer is a Player obj
             // console.log(square)
             // console.log(piece.color)
             // console.log(currentPlayer.color)
-            if (square.type != 'empty' && square.color == currentPlayer.color) { // Check for current player's piece
+            if (square.type != 'empty' && square.data.list.color == currentPlayer.color) { // Check for current player's piece
                 const squareColor = boardColors[row][col]; 
                 if (squareColor == 'yellow') {
                     //add victoryPoints
@@ -647,7 +711,7 @@ function handleEndTurn(boardState) { // Assuming currentPlayer is a Player objec
             // console.log(square)
             // console.log(piece.color)
             // console.log(currentPlayer.color)
-            if (square.type != 'empty' && square.color == currentPlayer.color) { // Check for current player's piece
+            if (square.type != 'empty' && square.data.list.color == currentPlayer.color) { // Check for current player's piece
                 const squareColor = boardColors[row][col]; 
                 if (squareColor == 'yellow') {
                     //add victoryPoints income
@@ -686,6 +750,11 @@ function updatePlayerStatsUI() {
     player2VPIncome.textContent = allPlayers[1].pointIncome;
 
 
+}
+
+function sendPlayerColorDisplay() {
+    playerColorDisplay = document.getElementById('playerColorDisplay')
+    playerColorDisplay.textContent = `You are playing as color: ${player.color}`
 }
 
 function createBaseColorBoard() {
@@ -751,14 +820,14 @@ function buyBackPiece(player, piece) {
     return false;
 }
 
-function setOriginalState(boardState) {
+function setOriginalState(board) {
     let originalPieces = []
     let i = 0
     for(row = 0; row < 12; row++) {
 
         for(col = 0; col < 8; col++) {
             //console.log(boardState)
-            if(boardState[row][col].type != 'empty') {
+            if(board[row][col].type != 'empty') {
                 originalPieces.push(chessPieceSprites[i])
                 i++
             }
@@ -834,7 +903,7 @@ function updateBuybackUI(scene, piece) {
     sprite.data.set('row', row); // Store row and column 
     sprite.data.set('col', col);
     sprite.data.set('startRow', row)
-    sprite.data.set('color', piece.color)
+    sprite.data.set('color', piece.data.list.color)
 
     // if (pieceIds.includes(spriteName)) {
     //     
@@ -856,6 +925,7 @@ function updateBuybackUI(scene, piece) {
     // 3. Store sprite (or an object containing the sprite) in chessPieceSprites
     chessPieceSprites.push(sprite); 
     pieceIds.push(spriteName)
+    boardState = gameScene.data.boardState
     //console.log(boardState)
 
 }
@@ -894,6 +964,8 @@ function getImagePath(type, color) {
 }
 
 function handleBuybackClick(event) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session');
     // Check if event and event.data exist
     if (!event || !event.data || !event.data.list) {
         console.log(event)
@@ -924,6 +996,16 @@ function handleBuybackClick(event) {
     if (buyBackPiece(player, piece)) {
         // Update buyback UI if successful
         console.log('Buy was successful');
+
+        const data = {
+            type: 'buy',
+            pieceId: piece.data.list.id,
+            sessionId: sessionId,
+            pieceColor: piece.data.list.color
+        }
+
+        socket.emit('buy', data)
+        handleEndTurn()
         switchTurns();
         handleStartTurn();
         return true;
@@ -933,7 +1015,22 @@ function handleBuybackClick(event) {
     }
 }
 
-function movePiece(gameObject, targetRow, targetCol, newX, newY) {
+function movePiece(gameObject, targetRow, targetCol) {
+    console.log('----------------------Moving Object: -------------------------------')
+    console.log(gameObject)
+    console.log('--------------------------------------------------------------------')
+    const snapSize = squareSize / 2; // Assuming squares as your snapping targets
+
+    const newX = targetCol * squareSize + squareSize / 2;
+    const newY = targetRow * squareSize + squareSize / 2;
+    console.log("newX: ", newX)
+    console.log("newY: ", newY)
+    
+    //const newX = Math.floor(gameObject.x / squareSize) * squareSize + snapSize;
+    //const newY = Math.floor(gameObject.y / squareSize) * squareSize + snapSize;
+
+
+    
     const tempRow = gameObject.data.list.row;
     const tempCol = gameObject.data.list.col;
     
@@ -942,45 +1039,61 @@ function movePiece(gameObject, targetRow, targetCol, newX, newY) {
     gameObject.y = newY;
     gameObject.data.list.row = targetRow;
     gameObject.data.list.col = targetCol;
+    
+    // console.log(tempRow)
+    // console.log(tempCol)
+    
 
     // Update boardState
     gameScene.data.boardState[targetRow][targetCol] = gameObject;
-    gameScene.data.boardState[tempRow][tempCol] = { type: 'empty' };
-    gameScene.data.boardState[targetRow][targetCol].color = gameObject.data.list.color;
-    gameScene.data.boardState[targetRow][targetCol].piece = gameObject;
+    gameScene.data.boardState[tempRow][tempCol] = null;
+    gameScene.data.boardState[tempRow][tempCol] = { type: "empty" } 
+
+    //gameScene.data.boardState[targetRow][targetCol].color = gameObject.color;
+    //gameScene.data.boardState[targetRow][targetCol].type = gameObject.type
+
     boardState = gameScene.data.boardState
 
     console.log('--------------Updated BoardState-------------------')
     console.log(boardState)
     console.log('---------------------------------------------------')
 
-    handleEndTurn(gameScene.data.boardState);
-    sendGameAction({
-        playerColor: currentPlayer.color,
-        type: 'move',
-        details: {
-            from: { row: tempRow, col: tempCol },
-            to: { row: targetRow, col: targetCol }
-        }
-    });
+    
+    
+    
 
-    switchTurns();
-    handleStartTurn(gameScene.data.boardState);
+    
+    //handleStartTurn(gameScene.data.boardState);
 }
 
-function capture(capturedPiece) {
-    let index = -1; // Initialize index with an invalid value
+function capture(piece, capturedPiece) {
+    console.log(capturedPiece)
+
+    const targetRow = capturedPiece.data.list.row
+    const targetCol = capturedPiece.data.list.col
+
+    console.log('-------------capturing----------')
+    let captureIndex = -1; // Initialize index with an invalid value 
     
     for (let i = 0; i < chessPieceSprites.length; i++) {
-        if (chessPieceSprites[i].data.list.id === capturedPiece.data.list.id) {
-            index = i;
+        if (chessPieceSprites[i].data.list.id == capturedPiece.data.list.id) {
+            captureIndex = i;
             break; // Exit the loop once the captured piece is found
         }
     }
 
-    if (index !== -1) {
+    if (captureIndex !== -1) {
+
         // Hide the sprite and force a scene update
-        chessPieceSprites[index].setVisible(false); // Hide the sprite
+        chessPieceSprites[captureIndex].setVisible(false); // Hide the sprite
+
+        gameScene.data.boardState[capturedPiece.data.list.row][capturedPiece.data.list.col] = { type: "empty" } 
+        boardState = gameScene.data.boardState
+
+        movePiece(piece, targetRow, targetCol)
+
+
+
         //chessPieceSprites[index].destroy(); // Remove the sprite from the game completely
 
         // Remove the sprite from the array
@@ -1023,6 +1136,9 @@ function cloneSprite(sprite) {
     return clonedSprite;
 }
 
+
+
+
 document.addEventListener('DOMContentLoaded', () => {
     addInfoPanel()
     const urlParams = new URLSearchParams(window.location.search);
@@ -1033,10 +1149,113 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (sessionId) {
         socket.emit('joinSession', sessionId);
-        playerColor = currentPlayer.color
-        socket.emit('playerColor', playerColor); // Inform the player of their color
+
+        socket.on('sessionState', (gameState) => {
+            console.log('Initial game state received:', gameState);
+
+            boardState = gameState.boardState;
+            //gameScene.data.boardState = gameState.boardState
+            chessPieceSprites = gameState.chessPieceSprites;
+            console.log(gameState)
+            console.log('PLAYER COLOR RECIEVED: ', gameState.playerColor)
+            playerColor = gameState.playerColor
+            if (playerColor == 'white') {
+                player = player1
+            } else if (playerColor == 'black') {
+                player = player2
+            } else {
+                console.log('Error, player color not recognized: ', playerColor)
+            }
+            sendPlayerColorDisplay()
+
+            //repaint(boardState, chessPieceSprites); // Initialize the board with the received game state
+        });
+
+        socket.on('startGame', () => {
+            console.log('Both players joined. Game starts!');
+            // Additional logic to start the game
+        });
+
+        socket.on('updatePlayerColorDisplays', () => {
+            
+        })
+
+        socket.on('updateUI', ({ action }) => {
+            console.log('Received updateUI event (Which means the other player moved!!!!)');
+            
+            
+            console.log('Received Action:', action);
+            
+            
+
+            const pieceId = action.pieceId
+            
+            let piece = null
+            let capturedPiece = null
+            
+
+            for (let chessPiece of chessPieceSprites){
+                //console.log(chessPiece)
+                if (chessPiece.data.list.id == pieceId){
+                    console.log('Piece Found: ')
+                    piece = chessPiece
+                    console.log(piece)
+                    break;
+                }
+
+            }
+
+            if (action.type == 'capture') {
+                console.log(action)
+                capturedPieceId = action.capturedPieceId
+                console.log('Capturing piece: ', capturedPieceId)
+
+                for (let chessPiece of chessPieceSprites){
+                    //console.log(chessPiece)
+                    if (chessPiece.data.list.id == capturedPieceId){
+                        console.log('Captured Piece Found: ')
+                        capturedPiece = chessPiece
+                        console.log(capturedPiece)
+                        break;
+                    }
+
+                }
+            }
+
+            if (action.type == 'buy' && action.pieceColor != playerColor) {
+                console.log('Opponent bought a Piece!!!!: ', piece)
+                console.log(action)
+                updateBuybackUI(gameScene, piece)
+                handleEndTurn()
+                switchTurns();
+                handleStartTurn();
+
+            }
+
+
+            if (piece == null){
+                console.log('error: Piece not found for some reason')
+            } 
+
         
-          
+            console.log('action.playerColor: ', action.playerColor)
+            console.log('playerColor: ', playerColor)
+            if (action.playerColor != playerColor && action.type == 'move'){
+                console.log('Processing opponent move');
+                movePiece(piece, action.details.to.row, action.details.to.col);
+                handleEndTurn()
+                switchTurns();
+                handleStartTurn();
+            }
+            else if (action.playerColor != playerColor && action.type == 'capture') {
+                console.log('Processing opponent capture');
+                capture(piece, capturedPiece)
+                handleEndTurn()
+                switchTurns();
+                handleStartTurn();
+            }
+        });
+        
     } else {
         console.error('No session ID provided.');
     }
@@ -1107,11 +1326,113 @@ function addInfoPanel() {
     }
 }
 
-function sendGameAction(action) {
+// Function to send game action to the server
+function sendGameAction(action, boardState) {
     const sessionId = new URLSearchParams(window.location.search).get('session');
+    console.log('-----------Sending Game Action to server--------------');
+    console.log(action);
+    console.log('Board State:', boardState);
+    console.log('------------------------------------------------------');
+
     if (sessionId) {
-        socket.emit('gameAction', { sessionId, action });
+        const serializedSprites = chessPieceSprites.map(sprite => ({
+            type: sprite.type,
+            x: sprite.x,
+            y: sprite.y,
+            id: sprite.data.list.id,
+            color: sprite.data.list.color,
+            row: sprite.data.list.row,
+            col: sprite.data.list.col
+        }));
+
+
+        const data = { sessionId, boardState, serializedSprites, action };
+        console.log('Serialized Data:', data);
+
+
+        socket.emit('updateBoardState', data);
     } else {
         console.error('Session ID is missing, cannot send action');
     }
 }
+
+function sendBuy(data) {
+    const sessionId = new URLSearchParams(window.location.search).get('session');
+    console.log('-----------Sending Buy to server--------------');
+    console.log(data);
+    console.log('------------------------------------------------------');
+
+
+
+
+    if (sessionId) {
+        socket.emit('buy', data);
+        } else {
+            console.error('Session ID is missing, cannot send action');
+            }
+}
+
+
+
+
+// Function to handle the received data and update the sprites
+function repaint(boardState, chessPieceSpritesData) {
+    console.log('---------------------Repainting with new Data---------------------------');
+
+    // Clear all current pieces from the canvas
+    chessPieceSprites.forEach(sprite => {
+        if (sprite && typeof sprite.destroy === 'function') {
+            sprite.destroy();
+        }
+    });
+    chessPieceSprites = [];
+
+    // Iterate through the chessPieceSpritesData to create and position each piece correctly
+    chessPieceSpritesData.forEach(spriteData => {
+        if (spriteData.type && spriteData.type !== 'empty' && spriteData.color) {
+            // Calculate the position based on the received x and y coordinates
+            const x = spriteData.x;
+            const y = spriteData.y;
+
+            // Create a new sprite for the piece
+            let spriteName = spriteData.type.charAt(0).toUpperCase() + spriteData.type.slice(1) + '_' + spriteData.color.charAt(0).toUpperCase() + spriteData.color.slice(1);
+            const sprite = gameScene.add.sprite(x, y, spriteName);
+
+            // Set the properties of the sprite
+            sprite.type = spriteData.type;
+            sprite.data = new Phaser.Data.DataManager(sprite);
+            sprite.setInteractive();
+            sprite.data.set('id', spriteData.id);
+            sprite.data.set('color', spriteData.color);
+            sprite.data.set('row', spriteData.row);
+            sprite.data.set('col', spriteData.col);
+
+            // Add the sprite to the array
+            chessPieceSprites.push(sprite);
+
+            // Enable dragging for the new sprite
+            gameScene.input.setDraggable(sprite);
+        } 
+    });
+
+    // Update the boardState based on the chessPieceSpritesData
+    boardState.forEach(row => row.fill({ type: 'empty', color: '' })); // Reset boardState
+    console.log('---------------------Logging GameScene Object-------------------------')
+    console.log(gameScene)
+    console.log('-----------------------------------------------------------')
+    
+    chessPieceSpritesData.forEach(spriteData => {
+        if (spriteData.row !== undefined && spriteData.col !== undefined) {
+            boardState[spriteData.row][spriteData.col] = {
+                type: spriteData.type,
+                color: spriteData.color,
+                x: spriteData.x,
+                y: spriteData.y
+            };
+        }
+    });
+}
+
+
+
+
