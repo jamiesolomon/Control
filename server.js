@@ -16,15 +16,38 @@ app.use(express.static('public'));
 
 // Endpoint to create a new session
 app.get('/new-session', (req, res) => {
-    const sessionId = shortid.generate();
+    const customRoomId = req.query.roomId;
+    let sessionId;
+
+    if (customRoomId && /^[a-zA-Z0-9]{4}$/.test(customRoomId)) {
+        sessionId = customRoomId;
+    } else {
+        sessionId = shortid.generate().substring(0, 4);
+    }
+
+    if (sessions[sessionId]) {
+        return res.status(400).json({ error: 'Room ID already in use. Please choose a different one.' });
+    }
+
     board.init();
 
     sessions[sessionId] = {
         players: [],
         boardState: board.squares,
-        chessPieceSprites: [],  
+        chessPieceSprites: [],
         currentPlayer: 'white'  // Default first player
     };
+    res.json({ sessionId });
+});
+
+// Endpoint to join an existing session
+app.get('/join-session', (req, res) => {
+    const sessionId = req.query.roomId;
+
+    if (!sessions[sessionId]) {
+        return res.status(404).json({ error: 'Room ID not found.' });
+    }
+
     res.json({ sessionId });
 });
 
