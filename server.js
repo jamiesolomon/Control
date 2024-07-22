@@ -126,6 +126,21 @@ io.on('connection', (socket) => {
     
 
     socket.on('disconnect', () => {
+        for (const sessionId in sessions) {
+            const session = sessions[sessionId];
+            const playerIndex = session.players.findIndex(player => player.id === socket.id);
+
+            if (playerIndex !== -1) {
+                session.players.splice(playerIndex, 1);
+                
+                // If no players are left, remove the session
+                if (session.players.length === 0) {
+                    delete sessions[sessionId];
+                    console.log(`Session ${sessionId} cleared.`);
+                }
+                break; // Exit loop after handling disconnection
+            }
+        }
         console.log(`Player ${socket.id} disconnected`);
     });
 });
