@@ -3,15 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Start New Game</title>
+    <title>Start New Game or Join Existing Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-    <button id="startNewGame">Start New Game</button>
-    
+    <div class="container">
+        <h1>Welcome to Control</h1>
+        <p>Start a new game or join an existing one</p>
+        <input type="text" id="roomId" placeholder="Room ID (4 characters)">
+        <button id="startNewGame">Start New Game</button>
+        <button id="joinGame">Join Game</button>
+    </div>
+
     <script>
         document.getElementById('startNewGame').addEventListener('click', function() {
-            fetch('/new-session', {
-                method: 'GET' // Adjust if your server expects POST
+            const roomIdInput = document.getElementById('roomId');
+            const roomId = roomIdInput.value.trim();
+
+            if (roomId.length !== 4) {
+                alert('Room ID must be exactly 4 characters long.');
+                return;
+            }
+
+            fetch(`/new-session?roomId=${roomId}`, {
+                method: 'GET'
             })
             .then(response => {
                 if (!response.ok) {
@@ -21,8 +65,33 @@
             })
             .then(data => {
                 const sessionId = data.sessionId;
-                
-                // Redirect to the game page with the session ID
+                window.location.href = `/control.html?session=${sessionId}`;
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+        });
+
+        document.getElementById('joinGame').addEventListener('click', function() {
+            const roomIdInput = document.getElementById('roomId');
+            const roomId = roomIdInput.value.trim();
+
+            if (roomId.length !== 4) {
+                alert('Room ID must be exactly 4 characters long.');
+                return;
+            }
+
+            fetch(`/join-session?roomId=${roomId}`, {
+                method: 'GET'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const sessionId = data.sessionId;
                 window.location.href = `/control.html?session=${sessionId}`;
             })
             .catch(error => {
