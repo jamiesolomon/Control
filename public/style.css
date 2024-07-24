@@ -157,3 +157,13 @@ body, html {
     background-color: #0056b3;
 }
 
+.highlight-circle {
+    position: absolute;
+    width: 65px; /* Adjust size as needed */
+    height: 65px; /* Adjust size as needed */
+    background-color: #A6A6A6; /* Semi-transparent green */
+    border-radius: 50%;
+    pointer-events: none; /* Make sure the circle does not interfere with pointer events */
+    z-index: 1000;
+}
+

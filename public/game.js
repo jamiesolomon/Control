@@ -25,6 +25,10 @@ let playerColorDisplay = null
 //is this important?
 let pieceButton = null
 
+// Variables to keep track of the currently selected piece and highlighted squares
+let selectedPiece = null;
+let highlightSprites = [];
+
 
 
 const socket = io(); // This should be accessible across your script
@@ -91,6 +95,7 @@ function preload() {
             //console.log(imageKey)
         }
     }
+    this.load.image('highlight', 'assets/highlight.png'); // Load the highlighter image
     this.load.image('placeholder', 'assets/tempSquare.png');
 
     //console.log('Images loaded');
@@ -158,6 +163,18 @@ function create() {
     //     console.log(gameObject);
     // });
 
+    this.input.on('pointerdown', function (pointer, gameObject) {
+        console.log(gameObject)
+        if (selectedPiece) {
+            clearHighlights();
+        }
+
+        if (gameObject && gameObject[0].type != 'empty') {
+            selectedPiece = gameObject[0];
+            highlightValidMoves(selectedPiece);
+        }
+    });
+
     this.input.on('dragstart', function (pointer, gameObject) {
         //console.log("Dragstart event fired!")
         gameObject.startPosition = { x: gameObject.x, y: gameObject.y };
@@ -184,7 +201,7 @@ function create() {
             const capturedPiece = gameScene.data.boardState[targetRow][targetCol];
             console.log(capturedPiece)
     
-            if (capturedPiece.type !== 'empty' && capturedPiece.color !== currentPlayer.color) {
+            if (capturedPiece.type !== 'empty' && capturedPiece.data.list.color !== currentPlayer.color) {
                 const action = {
                     pieceId: gameObject.data.list.id,
                     playerColor: currentPlayer.color,
@@ -197,6 +214,7 @@ function create() {
                 }
 
                 capture(gameObject, capturedPiece);
+                clearHighlights();
                 //handleEndTurn()
                 sendGameAction(action, boardState)
                 handleEndTurn()
@@ -227,6 +245,7 @@ function create() {
 
     
             movePiece(gameObject, targetRow, targetCol);
+            clearHighlights();
             //handleEndTurn(gameScene.data.boardState);
             sendGameAction(action, boardState);
             handleEndTurn()
@@ -268,6 +287,7 @@ function initializePieces() {
                 const sprite = this.add.sprite(x, y, spriteName);
 
                 sprite.type = piece.type;
+                sprite.color = piece.color
                 sprite.data = new Phaser.Data.DataManager(sprite);
                 sprite.setInteractive();
                 sprite.data.set('row', row);
@@ -376,75 +396,35 @@ function calculateValidMoves(piece, boardState) {
 
             // Similar logic for scanning left, up, and down ...
             break;
+
         case 'bishop':
+                // Check each diagonal direction
+                const directions = [
+                    { rowOffset: 1, colOffset: 1 },  // top-right diagonal
+                    { rowOffset: 1, colOffset: -1 }, // bottom-right diagonal
+                    { rowOffset: -1, colOffset: -1 }, // bottom-left diagonal
+                    { rowOffset: -1, colOffset: 1 }  // top-left diagonal
+                ];
             
-            // Check each diagonal direction
-            for (let offset = 1; offset < 8; offset++) {
-                let rowToCheck = row + offset;
-                let colToCheck = col + offset;
-                // Check top-right diagonal
-                while (inBounds(rowToCheck, colToCheck)) {
-                    if (gameScene.data.boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
-                        if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
-                            validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
+                for (let direction of directions) {
+                    let rowToCheck = row + direction.rowOffset;
+                    let colToCheck = col + direction.colOffset;
+                    while (inBounds(rowToCheck, colToCheck)) {
+                        if (gameScene.data.boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
+                            if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
+                                validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
+                            }
+                            break; // Stop on encountering a piece (friend or foe)
+                        } else { 
+                            validMoves.push({ row: rowToCheck, col: colToCheck }); // Empty square
                         }
-                        break; // Stop on encountering a piece (friend or foe) 
-                    } else { 
-                        validMoves.push({ row: rowToCheck, col: colToCheck }); // Empty square
+                        rowToCheck += direction.rowOffset;
+                        colToCheck += direction.colOffset;
                     }
-                    rowToCheck += offset;
-                    colToCheck += offset;
                 }
-
-                // Check bottom-right diagonal
-                rowToCheck = row + offset;
-                colToCheck = col - offset;
-                while (inBounds(rowToCheck, colToCheck)) {
-                    if (gameScene.data.boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
-                        if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
-                            validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
-                        }
-                        break; // Stop on encountering a piece (friend or foe) 
-                    } else { 
-                        validMoves.push({ row: rowToCheck, col: colToCheck }); // Empty square
-                    }
-                    rowToCheck += offset;
-                    colToCheck -= offset;
-                }
-
-                // Check bottom-left diagonal
-                rowToCheck = row - offset;
-                colToCheck = col - offset;
-                while (inBounds(rowToCheck, colToCheck)) {
-                    if (gameScene.data.boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
-                        if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
-                            validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
-                        }
-                        break; // Stop on encountering a piece (friend or foe) 
-                    } else { 
-                        validMoves.push({ row: rowToCheck, col: colToCheck }); // Empty square
-                    }
-                    rowToCheck -= offset;
-                    colToCheck -= offset;
-                }
-
-                // Check top-left diagonal
-                rowToCheck = row - offset;
-                colToCheck = col + offset;
-                while (inBounds(rowToCheck, colToCheck)) {
-                    if (gameScene.data.boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
-                        if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
-                            validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
-                        }
-                        break; // Stop on encountering a piece (friend or foe) 
-                    } else { 
-                        validMoves.push({ row: rowToCheck, col: colToCheck }); // Empty square
-                    }
-                    rowToCheck -= offset;
-                    colToCheck += offset;
-                }
-            }
-            break;
+                break;
+            
+            
         case 'knight':
             // Knight's L-shaped movement (+/- 2 rows, +/- 1 col) or (+/- 1 row, +/- 2 cols)
             const knightOffsets = [
@@ -463,122 +443,80 @@ function calculateValidMoves(piece, boardState) {
                     }
             }
             break;
-        case 'queen':
-             // Horizontal and Vertical Movement (like a rook)
-             for (let i = col + 1; i < 8; i++) {
-                if (gameScene.data.boardState[row][i].type == 'empty') {
-                    //console.log(boardState)
-                    validMoves.push({ row, col: i });
-                } else {
-                    if (gameScene.data.boardState[row][i].color !== color) {
-                        validMoves.push({ row, col: i });
-                    }
-                    break; 
-                }
-            }
-            for (let i = col - 1; i >= 0; i--) {
-                if (gameScene.data.boardState[row][i].type == 'empty') {
-                    validMoves.push({ row, col: i });
-                } else {
-                    if (gameScene.data.boardState[row][i].color !== color) {
-                        //console.log(boardState[row][i].color)
-                        //console.log(color)
-                        validMoves.push({ row, col: i });
-                    }
-                    break; 
-                }
-            }
-            // Check vertical directions
-            for (let i = row + 1; i < 12; i++) {
-                if (gameScene.data.boardState[i][col].type == 'empty') { 
-                    validMoves.push({ row: i, col });
-                } else { 
-                    if (gameScene.data.boardState[i][col].color !== color) { 
-                        validMoves.push({ row: i, col });
-                    }
-                    break;
-                }
-            }
-            for (let i = row - 1; i >= 0; i--) {
-                if (gameScene.data.boardState[i][col].type == 'empty') { 
-                    validMoves.push({ row: i, col });
-                } else { 
-                    if (gameScene.data.boardState[i][col].color !== color) { 
-                        validMoves.push({ row: i, col });
-                    }
-                    break;
-                }
-            }
             
-
-            // Diagonal Movement (like a bishop)
-            // Check each diagonal direction
-            for (let offset = 1; offset < 8; offset++) {
-                let rowToCheck = row + offset;
-                let colToCheck = col + offset;
-                // Check top-right diagonal
-                while (inBounds(rowToCheck, colToCheck)) {
-                    if (gameScene.data.boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
-                        if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
-                            validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
+        case 'queen':
+                // Horizontal and Vertical Movement (like a rook)
+                // Check right direction
+                for (let i = col + 1; i < 8; i++) {
+                    if (gameScene.data.boardState[row][i].type == 'empty') {
+                        validMoves.push({ row, col: i });
+                    } else {
+                        if (gameScene.data.boardState[row][i].color !== color) {
+                            validMoves.push({ row, col: i });
                         }
-                        break; // Stop on encountering a piece (friend or foe) 
-                    } else { 
-                        validMoves.push({ row: rowToCheck, col: colToCheck }); // Empty square
+                        break; 
                     }
-                    rowToCheck += offset;
-                    colToCheck += offset;
                 }
-
-                // Check bottom-right diagonal
-                rowToCheck = row + offset;
-                colToCheck = col - offset;
-                while (inBounds(rowToCheck, colToCheck)) {
-                    if (gameScene.data.boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
-                        if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
-                            validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
+                // Check left direction
+                for (let i = col - 1; i >= 0; i--) {
+                    if (gameScene.data.boardState[row][i].type == 'empty') {
+                        validMoves.push({ row, col: i });
+                    } else {
+                        if (gameScene.data.boardState[row][i].color !== color) {
+                            validMoves.push({ row, col: i });
                         }
-                        break; // Stop on encountering a piece (friend or foe) 
-                    } else { 
-                        validMoves.push({ row: rowToCheck, col: colToCheck }); // Empty square
+                        break; 
                     }
-                    rowToCheck += offset;
-                    colToCheck -= offset;
                 }
-
-                // Check bottom-left diagonal
-                rowToCheck = row - offset;
-                colToCheck = col - offset;
-                while (inBounds(rowToCheck, colToCheck)) {
-                    if (gameScene.data.boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
-                        if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
-                            validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
+                // Check down direction
+                for (let i = row + 1; i < 12; i++) {
+                    if (gameScene.data.boardState[i][col].type == 'empty') { 
+                        validMoves.push({ row: i, col });
+                    } else { 
+                        if (gameScene.data.boardState[i][col].color !== color) { 
+                            validMoves.push({ row: i, col });
                         }
-                        break; // Stop on encountering a piece (friend or foe) 
-                    } else { 
-                        validMoves.push({ row: rowToCheck, col: colToCheck }); // Empty square
+                        break;
                     }
-                    rowToCheck -= offset;
-                    colToCheck -= offset;
                 }
-
-                // Check top-left diagonal
-                rowToCheck = row - offset;
-                colToCheck = col + offset;
-                while (inBounds(rowToCheck, colToCheck)) {
-                    if (gameScene.data.boardState[rowToCheck][colToCheck] != 'empty') { // Piece encountered
-                        if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
-                            validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
+                // Check up direction
+                for (let i = row - 1; i >= 0; i--) {
+                    if (gameScene.data.boardState[i][col].type == 'empty') { 
+                        validMoves.push({ row: i, col });
+                    } else { 
+                        if (gameScene.data.boardState[i][col].color !== color) { 
+                            validMoves.push({ row: i, col });
                         }
-                        break; // Stop on encountering a piece (friend or foe) 
-                    } else { 
-                        validMoves.push({ row: rowToCheck, col: colToCheck }); // Empty square
+                        break;
                     }
-                    rowToCheck -= offset;
-                    colToCheck += offset;
                 }
-            }
-            break; 
+            
+                // Diagonal Movement (like a bishop)
+                const bishopDirections = [
+                    { rowOffset: 1, colOffset: 1 },  // top-right diagonal
+                    { rowOffset: 1, colOffset: -1 }, // bottom-right diagonal
+                    { rowOffset: -1, colOffset: -1 }, // bottom-left diagonal
+                    { rowOffset: -1, colOffset: 1 }  // top-left diagonal
+                ];
+            
+                for (let direction of bishopDirections) {
+                    let rowToCheck = row + direction.rowOffset;
+                    let colToCheck = col + direction.colOffset;
+                    while (inBounds(rowToCheck, colToCheck)) {
+                        if (gameScene.data.boardState[rowToCheck][colToCheck].type != 'empty') { // Piece encountered
+                            if (gameScene.data.boardState[rowToCheck][colToCheck].color !== color) { 
+                                validMoves.push({ row: rowToCheck, col: colToCheck }); // Capture
+                            }
+                            break; // Stop on encountering a piece (friend or foe)
+                        } else { 
+                            validMoves.push({ row: rowToCheck, col: colToCheck }); // Empty square
+                        }
+                        rowToCheck += direction.rowOffset;
+                        colToCheck += direction.colOffset;
+                    }
+                }
+                break;
+            
         case 'king':
 
 
@@ -638,6 +576,22 @@ function calculateValidMoves(piece, boardState) {
     //console.log(validMoves)
 
     return validMoves;
+}
+
+function highlightValidMoves(piece) {
+    const validMoves = calculateValidMoves(piece, gameScene.data.boardState);
+    validMoves.forEach(move => {
+        const x = move.col * squareSize + squareSize / 2;
+        const y = move.row * squareSize + squareSize / 2;
+        console.log("creating highlighter sprite")
+        const highlightSprite = gameScene.add.sprite(x, y, 'highlight').setVisible(true)//.setScale(scale);
+        highlightSprites.push(highlightSprite);
+    });
+}
+
+function clearHighlights() {
+    highlightSprites.forEach(sprite => sprite.destroy());
+    highlightSprites = [];
 }
 
 // Helper function to check if coordinates are within board bounds
