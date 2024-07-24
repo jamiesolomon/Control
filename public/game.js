@@ -169,7 +169,7 @@ function create() {
             clearHighlights();
         }
 
-        if (gameObject && gameObject[0].type != 'empty') {
+        if (gameObject.length != 0) {
             selectedPiece = gameObject[0];
             highlightValidMoves(selectedPiece);
         }
@@ -918,6 +918,7 @@ function getImagePath(type, color) {
 }
 
 function handleBuybackClick(event) {
+    console.log('handeling buyback for: ', event)
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('session');
     // Check if event and event.data exist
@@ -930,7 +931,7 @@ function handleBuybackClick(event) {
     const pieceType = event.type;
     const color = event.data.list.color;
     const pieceKey = event.data.list.id;
-    let piece = null;
+    let piece = null
 
     for (let el of originalPiecePositions) {
         // Ensure el and el.data.list are defined
@@ -955,7 +956,7 @@ function handleBuybackClick(event) {
             type: 'buy',
             pieceId: piece.data.list.id,
             sessionId: sessionId,
-            pieceColor: piece.data.list.color
+            playerColor: piece.data.list.color
         }
 
         socket.emit('buy', data)
@@ -1029,7 +1030,7 @@ function capture(piece, capturedPiece) {
     console.log('-------------capturing----------')
     let captureIndex = -1; // Initialize index with an invalid value 
     
-    for (let i = 0; i < chessPieceSprites.length; i++) {
+    for (let i = 0; i < chessPieceSprites.length; i++) {    
         if (chessPieceSprites[i].data.list.id == capturedPiece.data.list.id) {
             captureIndex = i;
             break; // Exit the loop once the captured piece is found
@@ -1070,7 +1071,6 @@ function oppColor() {
 }
 
 
-
 function updateTurnDisplay() {
     //console.log(turnDisplay)
     const str = currentPlayer.color.charAt(0).toUpperCase() + currentPlayer.color.slice(1);
@@ -1089,8 +1089,6 @@ function cloneSprite(sprite) {
     // Copy other properties as needed
     return clonedSprite;
 }
-
-
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1154,7 +1152,7 @@ document.addEventListener('DOMContentLoaded', () => {
             actionColor = action.playerColor
             
             
-
+            
             for (let chessPiece of chessPieceSprites){
                 //console.log(chessPiece)
                 if (chessPiece.data.list.id == pieceId){
@@ -1165,6 +1163,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
             }
+            
 
             if (actionType == 'capture') {
                 console.log(action)
@@ -1184,6 +1183,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (actionType == 'buy' && actionColor != playerColor) {
+                console.log('Recieved a Buy action!')
+                console.log(action)
                 console.log('Opponent bought a Piece!!!!: ', piece)
                 console.log(action)
                 updateBuybackUI(gameScene, piece)
