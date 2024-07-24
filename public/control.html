@@ -17,34 +17,35 @@
             if (sessionId) {
                 // Display the invite link somewhere on your page
                 const inviteLink = `${window.location.origin}/control.html?session=${sessionId}`;
+                const inviteContainer = document.createElement('div');
+                inviteContainer.classList.add('invite-container');
                 const inviteElement = document.createElement('p');
-                inviteElement.textContent = `Invite Link for Player 2: ${inviteLink}`;
-                document.body.appendChild(inviteElement);
-    
-                // You can also copy the invite link to the clipboard automatically or add a button to do so
-                // navigator.clipboard.writeText(inviteLink).then(() => {
-                //     console.log('Invite link copied to clipboard');
-                // });
+                inviteElement.innerHTML = `Invite Link for Player 2: <span class="invite-link" id="inviteLink">${inviteLink}</span>`;
+                const copyButton = document.createElement('button');
+                copyButton.textContent = 'Copy Link';
+                copyButton.classList.add('copy-button');
+                copyButton.addEventListener('click', () => {
+                    navigator.clipboard.writeText(inviteLink).then(() => {
+                        alert('Invite link copied to clipboard');
+                    });
+                });
+                inviteContainer.appendChild(inviteElement);
+                inviteContainer.appendChild(copyButton);
+                document.getElementById('shop').appendChild(inviteContainer);
             }
         });
     </script>
-    
 </head>
 <body>
-
-    
-    
     <main>
         <section class="hero">
             <h1>Control</h1>
             <p class="tagline">Master War and Wealth</p><br>
-            <!-- Information Icon and Dropdown Content -->
             <div class="info-container">
                 <i class="info-icon">Click here to learn the rules!</i> <!-- Information Icon -->
                 <div class="dropdown-content"></div>
                 <div id="playerColorDisplay"></div>
             </div>     
-                   
         </section>
         
         <div class="main-container">
@@ -70,14 +71,16 @@
                 </div>
             </div>
             <div class="container">
-                <div id="game-container">
-                    
-                </div>
+                <div id="game-container"></div>
+                
+            </div>
+            <div id="shop">
                 <div id="buyback-ui">
                     <h3>Buy Pieces</h3>
                     <div id="piece-buttons-container"></div>
                 </div>
             </div>
+            <!-- Invite Link will be inserted here -->
         </div>
     </main>
 </body>

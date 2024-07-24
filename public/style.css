@@ -1,6 +1,6 @@
 body, html {
-    margin: 50px;
-    padding: 25px;
+    margin: 0;
+    padding: 0;
     height: 100%;
     font-family: 'Roboto', sans-serif;
     background-color: #b63046;
@@ -8,6 +8,7 @@ body, html {
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
 }
 
 .main-container {
@@ -15,8 +16,9 @@ body, html {
     justify-content: center;
     align-items: start;
     gap: 20px;
-    max-width: 1200px; /* Adjust based on your layout needs */
+    max-width: 90vw;
     width: 100%;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
 }
 
 .container {
@@ -24,11 +26,15 @@ body, html {
     justify-content: center;
     align-items: start;
     gap: 20px;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    flex-direction: column; /* Ensures elements stack vertically */
 }
 
 #game-container {
-    width: 614.4px; /* Adjust based on your game's size */
-    height: 921.6px; /* Adjust based on your game's size */
+    width: 80vw;
+    max-width: 614.4px;
+    height: calc(80vw * 1.5); /* Maintain aspect ratio */
+    max-height: 921.6px;
     background-color: #20232a;
     border: 5px solid #61dafb;
     box-shadow: 0 0 10px #61dafb;
@@ -38,13 +44,14 @@ body, html {
 }
 
 #buyback-ui {
-    width: 500px; /* Adjust as needed */
+    width: 90vw;
+    max-width: 500px;
     padding: 20px;
     background-color: #43b982;
     border: 3px solid #61dafb;
     box-shadow: 0 0 5px #61dafb;
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Ensures elements stack vertically */
     gap: 7px;
 }
 
@@ -64,43 +71,41 @@ body, html {
 
 #stats-container {
     margin-top: 14px;
-    width: 120px
+    width: 120px;
 }
 
 #stats-container h3 {
     color: #61dafb;
 }
 
-
 .piece-button {
-    width: 60px; /* Set a minimum width */
-    height: 60px; /* Set a minimum height */
+    width: 60px;
+    height: 60px;
     background-color: transparent;
     border: none;
     padding: 0;
     cursor: pointer;
-    background-size: contain; /* This will ensure the image fits within the button */
+    background-size: contain;
     background-repeat: no-repeat;
-    background-position: center; /* Center the image within the button */
+    background-position: center;
 }
 
 .hero {
-    background-color: #b63046; /* Light grey background */
-    padding: 20px; /* Add some padding around the content */
-    text-align: center; /* Center the text */
-    /* border-bottom: 2px solid #ddd; Add a subtle border */
+    background-color: #b63046;
+    padding: 20px;
+    text-align: center;
 }
 
 .hero h1 {
-    color: #333; /* Dark text color for the headline */
-    font-size: 2.5rem; /* Large font size */
-    margin-bottom: 10px; /* Space below the headline */
+    color: #fff;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
 }
 
 .hero .tagline {
-    color: #383636; /* Medium-dark text color for the tagline */
-    font-size: 1.2rem; /* Slightly larger font size */
-    margin-top: 0; /* Reduce space above the tagline */
+    color: #ddd;
+    font-size: 1.2rem;
+    margin-top: 0;
 }
 
 .info-container {
@@ -113,29 +118,28 @@ body, html {
     cursor: pointer;
     position: relative;
     bottom: 10px;
-    color: #fff; /* Adjust based on your hero section's color scheme */
-    min-width: 200px
+    color: #fff;
+    min-width: 200px;
 }
 
 .dropdown-content {
     display: none;
     position: absolute;
     background-color: #f9f9f9;
-    min-width: 240px; /* Increased width */
+    min-width: 240px;
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-    padding: 20px; /* Increased padding for more space */
+    padding: 20px;
     z-index: 1;
     left: 10px;
-    bottom: -10px; /* Adjust this value to lower the dropdown */
-    transform: translateY(100%); /* This moves the dropdown below the icon */
+    bottom: -10px;
+    transform: translateY(100%);
     color: #333;
 }
 
 .dropdown-content h3, .dropdown-content p, .dropdown-content ul {
-    font-size: 16px; /* Adjust based on your preference */
+    font-size: 16px;
 }
 
-/* Style to show the dropdown content */
 .show {
     display: block;
 }
@@ -159,11 +163,60 @@ body, html {
 
 .highlight-circle {
     position: absolute;
-    width: 65px; /* Adjust size as needed */
-    height: 65px; /* Adjust size as needed */
-    background-color: #A6A6A6; /* Semi-transparent green */
+    width: 65px;
+    height: 65px;
+    background-color: #A6A6A6;
     border-radius: 50%;
-    pointer-events: none; /* Make sure the circle does not interfere with pointer events */
+    pointer-events: none;
     z-index: 1000;
 }
 
+.invite-container {
+    margin: 20px 0 0 0;
+    padding: 15px;
+    background-color: #20232a;
+    border-radius: 5px;
+    box-shadow: 0 0 5px #61dafb;
+    text-align: center;
+}
+
+.invite-link {
+    color: #61dafb;
+    cursor: pointer;
+}
+
+.copy-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin-top: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.copy-button:hover {
+    background-color: #0056b3;
+}
+
+/* Media Queries for Responsive Design */
+@media (max-width: 768px) {
+    #game-container {
+        width: 90vw;
+        height: calc(90vw * 1.5); /* Maintain aspect ratio */
+    }
+
+    #buyback-ui {
+        width: 100%;
+    }
+
+    .main-container, .container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #stats-container {
+        width: 100%;
+        text-align: center;
+    }
+}
