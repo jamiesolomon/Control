@@ -84,6 +84,7 @@ game.data.boardState = null
 
 function preload() {
     this.load.image('board', 'assets/ControlBoard_8x12.png'); 
+    this.load.audio('moveSound', 'assets/moveSoundEffect.mp3'); // Add this line to load the sound file
 
     const pieceTypes = ['pawn', 'bishop', 'knight', 'rook', 'queen', 'king'];
     const colors = ['white', 'black'];
@@ -759,6 +760,7 @@ function buyBackPiece(player, piece) {
             // gameScene.data.boardState[row][col] = piece
             // boardState[row][col] = piece
             updateBuybackUI(gameScene, piece); 
+            
             return true; 
         } else {
             // ... Handle not enough coins 
@@ -880,6 +882,8 @@ function updateBuybackUI(scene, piece) {
     chessPieceSprites.push(sprite); 
     pieceIds.push(spriteName)
     boardState = gameScene.data.boardState
+    // Play the move sound
+    gameScene.sound.play('moveSound'); // Add this line to play the sound
     //console.log(boardState)
 
 }
@@ -997,6 +1001,9 @@ function movePiece(gameObject, targetRow, targetCol) {
     
     // console.log(tempRow)
     // console.log(tempCol)
+
+    // Play the move sound
+    gameScene.sound.play('moveSound'); // Add this line to play the sound
     
 
     // Update boardState
