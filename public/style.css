@@ -30,6 +30,10 @@ body, html {
     flex-direction: column; /* Ensures elements stack vertically */
 }
 
+/* #title {
+    padding-top: 4px;
+} */
+
 #game-container {
     width: 80vw;
     max-width: 614.4px;

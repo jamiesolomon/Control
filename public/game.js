@@ -2,7 +2,8 @@
 
 // const e = require("express");
 
-const scale = 0.4
+const scale = Math.min(window.innerWidth / 1536, window.innerHeight / 2304);
+
 const squareSize = 192 * scale
 const greenVal = 0.5
 const yellowVal = 1
@@ -28,10 +29,13 @@ let pieceButton = null
 // Variables to keep track of the currently selected piece and highlighted squares
 let selectedPiece = null;
 let highlightSprites = [];
+let highlightSquares = []
 
 
 
 const socket = io(); // This should be accessible across your script
+
+// INSTANTIATE PLAYERS IN SERVER NOT GAME.JS FILE!!!
 
 class Player {
     constructor() {
@@ -63,14 +67,19 @@ function updateTurnDisplay() {
 
 
 
+// Update the game configuration with the dynamic scale
 const config = {
-    type: Phaser.AUTO, 
-    width: 1536 * scale, // Adjust if needed
-    height: 2304 * scale, // Adjust if needed
+    type: Phaser.AUTO,
+    width: 1536 * scale,
+    height: 2304 * scale,
     parent: 'game-container',
     scene: {
         preload: preload,
         create: create,
+    },
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
     }
 };
 
@@ -164,7 +173,11 @@ function create() {
 
     this.input.on('pointerdown', function (pointer, gameObject) {
         console.log(gameObject)
-        if (selectedPiece) {
+        const targetRow = Math.floor(pointer.upY / squareSize); 
+        const targetCol = Math.floor(pointer.upX / squareSize);
+        const targetSquare = [targetRow, targetCol]
+
+        if (selectedPiece && !isValidMove(selectedPiece, targetRow, targetCol, boardState, currentPlayer)) {
             clearHighlights();
         }
 
@@ -173,6 +186,54 @@ function create() {
             highlightValidMoves(selectedPiece);
         }
     });
+
+    this.input.on('pointerup', function (pointer, gameObject) {
+        console.log(pointer)
+
+        const targetRow = Math.floor(pointer.upY / squareSize); 
+        const targetCol = Math.floor(pointer.upX / squareSize);
+        selectedSquare = [targetRow, targetCol]
+        console.log(selectedPiece)
+        console.log(selectedSquare)
+        console.log(highlightSquares)
+        console.log(playerColor)
+        console.log(currentPlayer)
+        console.log(currentPlayerColor)
+
+        
+        if (selectedPiece) {
+
+            if(selectedPiece.data.list.color == playerColor && currentPlayer.color == playerColor) {
+                for (let i = 0; i < highlightSquares.length; i++) {
+                    if (highlightSquares[i].row == selectedSquare[0] && highlightSquares[i].col == selectedSquare[1]) {
+                        const action = {
+                            pieceId: selectedPiece.data.list.id,
+                            playerColor: currentPlayer.color,
+                            type: 'move',
+                            details: {
+                                from: { row: selectedPiece.data.list.row, col: selectedPiece.data.list.col },
+                                to: { row: targetRow, col: targetCol }
+                            }
+                        }
+                        movePiece(selectedPiece, targetRow, targetCol);
+                        clearHighlights();
+                        //handleEndTurn(gameScene.data.boardState);
+                        sendGameAction(action, boardState);
+                        handleEndTurn()
+                        switchTurns();
+                        handleStartTurn()
+
+                    }
+                }
+            }
+        }
+
+        if (gameObject.length != 0) {
+            selectedPiece = gameObject[0];
+            highlightValidMoves(selectedPiece);
+        }
+    });
+
 
     this.input.on('dragstart', function (pointer, gameObject) {
         //console.log("Dragstart event fired!")
@@ -579,13 +640,19 @@ function calculateValidMoves(piece, boardState) {
 
 function highlightValidMoves(piece) {
     const validMoves = calculateValidMoves(piece, gameScene.data.boardState);
+    console.log(validMoves)
+    let counter = 0
     validMoves.forEach(move => {
         const x = move.col * squareSize + squareSize / 2;
         const y = move.row * squareSize + squareSize / 2;
         console.log("creating highlighter sprite")
         const highlightSprite = gameScene.add.sprite(x, y, 'highlight').setVisible(true)//.setScale(scale);
+        highlightSprite.row = row
+        highlightSprite.col = col
         highlightSprites.push(highlightSprite);
+        
     });
+    highlightSquares = validMoves
 }
 
 function clearHighlights() {
