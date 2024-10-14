@@ -1108,6 +1108,7 @@ function movePiece(gameObject, targetRow, targetCol) {
     // console.log(tempCol)
 
     // Play the move sound
+    console.log('playing game sound')
     gameScene.sound.play('moveSound'); // Add this line to play the sound
     
 
