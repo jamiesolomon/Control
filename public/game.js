@@ -195,6 +195,7 @@ function create() {
 
         const targetRow = Math.floor(pointer.upY / squareSize); 
         const targetCol = Math.floor(pointer.upX / squareSize);
+        const capturedPiece = gameScene.data.boardState[targetRow][targetCol];
         selectedSquare = [targetRow, targetCol]
         console.log(selectedPiece)
         console.log(selectedSquare)
@@ -202,9 +203,38 @@ function create() {
         console.log(playerColor)
         console.log(currentPlayer)
         console.log(currentPlayerColor)
+        console.log(capturedPiece)
 
         
         if (selectedPiece) {
+
+            if (isValidMove(selectedPiece, targetRow, targetCol, gameScene.data.boardState, currentPlayer) && selectedPiece.data.list.color == playerColor) {
+                console.log(capturedPiece)
+        
+                if (capturedPiece.type !== 'empty' && capturedPiece.data.list.color !== currentPlayer.color) {
+                    const action = {
+                        pieceId: selectedPiece.data.list.id,
+                        playerColor: currentPlayer.color,
+                        type: 'capture',
+                        details: {
+                            from: { row: selectedPiece.data.list.row, col: selectedPiece.data.list.col },
+                            to: { row: targetRow, col: targetCol }
+                        },
+                        capturedPieceId: capturedPiece.data.list.id
+                    }
+    
+                    capture(selectedPiece, capturedPiece);
+                    clearHighlights();
+                    //handleEndTurn()
+                    sendGameAction(action, boardState)
+                    handleEndTurn()
+                    switchTurns()
+                    handleStartTurn()
+                    
+                    return console.log("Captured piece: ", capturedPiece)
+                }
+            }
+            
 
             if(selectedPiece.data.list.color == playerColor && currentPlayer.color == playerColor) {
                 for (let i = 0; i < highlightSquares.length; i++) {
@@ -242,13 +272,17 @@ function create() {
 
     this.input.on('dragstart', function (pointer, gameObject) {
         //console.log("Dragstart event fired!")
-        gameObject.startPosition = { x: gameObject.x, y: gameObject.y };
+        if(gameObject.color == playerColor) {
+            gameObject.startPosition = { x: gameObject.x, y: gameObject.y };
+        }
     });
 
         
     this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
-        gameObject.x = dragX;
-        gameObject.y = dragY;
+        if(gameObject.color == playerColor) {
+            gameObject.x = dragX;
+            gameObject.y = dragY;
+        }
     });
 
         
@@ -317,7 +351,7 @@ function create() {
             switchTurns();
             handleStartTurn()
             
-        } else {
+        } else if(gameObject.color == playerColor){
             // Handle invalid move (snap back into place, etc.)
             gameObject.x = gameObject.startPosition.x;
             gameObject.y = gameObject.startPosition.y;
@@ -400,7 +434,7 @@ function isValidMove(piece, newRow, newCol, boardState, currentPlayer) {
 
 
 function calculateValidMoves(piece, boardState) {
-    //console.log(piece)
+    console.log(piece)
     //const row = Math.floor(piece.y / squareSize); 
     //const col = Math.floor(piece.x / squareSize);
     const type = piece.type
