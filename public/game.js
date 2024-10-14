@@ -2,7 +2,9 @@
 
 // const e = require("express");
 
-const scale = 0.4
+const scale = Math.min(window.innerWidth / (1536*.9), window.innerHeight / (2304*.9));
+//const scale = 0.4
+
 const squareSize = 192 * scale
 const greenVal = 0.5
 const yellowVal = 1
@@ -28,6 +30,7 @@ let pieceButton = null
 // Variables to keep track of the currently selected piece and highlighted squares
 let selectedPiece = null;
 let highlightSprites = [];
+let highlightSquares = []
 
 
 
@@ -65,14 +68,19 @@ function updateTurnDisplay() {
 
 
 
+// Update the game configuration with the dynamic scale
 const config = {
-    type: Phaser.AUTO, 
-    width: 1536 * scale, // Adjust if needed
-    height: 2304 * scale, // Adjust if needed
+    type: Phaser.AUTO,
+    width: 1536 * scale,
+    height: 2304 * scale,
     parent: 'game-container',
     scene: {
         preload: preload,
         create: create,
+    },
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
     }
 };
 
@@ -166,15 +174,72 @@ function create() {
 
     this.input.on('pointerdown', function (pointer, gameObject) {
         console.log(gameObject)
-        if (selectedPiece) {
+        const targetRow = Math.floor(pointer.upY / squareSize); 
+        const targetCol = Math.floor(pointer.upX / squareSize);
+        const targetSquare = [targetRow, targetCol]
+
+        if (selectedPiece && !isValidMove(selectedPiece, targetRow, targetCol, boardState, currentPlayer)) {
             clearHighlights();
         }
 
         if (gameObject.length != 0) {
-            selectedPiece = gameObject[0];
-            highlightValidMoves(selectedPiece);
+            if(gameObject[0].color == playerColor) {
+                console.log(selectedPiece)
+                selectedPiece = gameObject[0];
+                highlightValidMoves(selectedPiece);
+            }
         }
     });
+
+    this.input.on('pointerup', function (pointer, gameObject) {
+        console.log(pointer)
+
+        const targetRow = Math.floor(pointer.upY / squareSize); 
+        const targetCol = Math.floor(pointer.upX / squareSize);
+        selectedSquare = [targetRow, targetCol]
+        console.log(selectedPiece)
+        console.log(selectedSquare)
+        console.log(highlightSquares)
+        console.log(playerColor)
+        console.log(currentPlayer)
+        console.log(currentPlayerColor)
+
+        
+        if (selectedPiece) {
+
+            if(selectedPiece.data.list.color == playerColor && currentPlayer.color == playerColor) {
+                for (let i = 0; i < highlightSquares.length; i++) {
+                    if (highlightSquares[i].row == selectedSquare[0] && highlightSquares[i].col == selectedSquare[1]) {
+                        const action = {
+                            pieceId: selectedPiece.data.list.id,
+                            playerColor: currentPlayer.color,
+                            type: 'move',
+                            details: {
+                                from: { row: selectedPiece.data.list.row, col: selectedPiece.data.list.col },
+                                to: { row: targetRow, col: targetCol }
+                            }
+                        }
+                        movePiece(selectedPiece, targetRow, targetCol);
+                        clearHighlights();
+                        //handleEndTurn(gameScene.data.boardState);
+                        sendGameAction(action, boardState);
+                        handleEndTurn()
+                        switchTurns();
+                        handleStartTurn()
+
+                    }
+                }
+            }
+        }
+
+        if (gameObject.length != 0) {
+            if(gameObject.color == playerColor) {
+                selectedPiece = gameObject[0];
+                highlightValidMoves(selectedPiece);
+            }
+        }
+    });
+
 
     this.input.on('dragstart', function (pointer, gameObject) {
         //console.log("Dragstart event fired!")
@@ -581,13 +646,19 @@ function calculateValidMoves(piece, boardState) {
 
 function highlightValidMoves(piece) {
     const validMoves = calculateValidMoves(piece, gameScene.data.boardState);
+    console.log(validMoves)
+    let counter = 0
     validMoves.forEach(move => {
         const x = move.col * squareSize + squareSize / 2;
         const y = move.row * squareSize + squareSize / 2;
         console.log("creating highlighter sprite")
         const highlightSprite = gameScene.add.sprite(x, y, 'highlight').setVisible(true)//.setScale(scale);
+        highlightSprite.row = row
+        highlightSprite.col = col
         highlightSprites.push(highlightSprite);
+        
     });
+    highlightSquares = validMoves
 }
 
 function clearHighlights() {
@@ -1088,7 +1159,7 @@ function updateTurnDisplay() {
 //updateTurnDisplay();
 
     
-
+// Not Used
 function cloneSprite(sprite) {
     // Create a new sprite object manually.
     // You need to copy over the properties you care about.
@@ -1097,6 +1168,174 @@ function cloneSprite(sprite) {
     return clonedSprite;
 }
 
+function addInfoPanel() {
+    const infoIcon = document.querySelector('.info-icon');
+    const dropdownContent = document.querySelector('.dropdown-content');
+
+    function renderPage(pageIndex) {
+        dropdownContent.innerHTML = ''; // Clear previous content
+
+        const title = document.createElement('h3');
+        const paragraph = document.createElement('p');
+        
+        // Dynamically set the content based on the pageIndex
+        switch (pageIndex) {
+            case 0:
+                title.textContent = "How do you Win?";
+                paragraph.innerHTML = "Get 20 victory points! <br><br> + Earn 1 victory point for every Yellow square you control<br><br> + Controling a square means one of your pieces are on it at the begining of your turn";
+                break;
+            case 1:
+                title.textContent = "Buying Pieces?";
+                paragraph.innerHTML = "+ Earn 0.5 coins for every green square you control.<br><br>" +  "+ Buy a piece from the shop to the right!<br><br>" + "+ Each piece costs as much as its corresponding chess value.";
+                break;
+            case 2: // New Page
+                title.textContent = "Moving and Capturing";
+                paragraph.innerHTML = "+ All legal chess moves are allowed except casteling and en-pacent. <br><br>+ no points or coins are awarded for captures, but that may change in a future update.";
+                break;
+            default:
+                title.textContent = "Page Title Not Found";
+                paragraph.textContent = "No additional content available.";
+                break;
+        }
+
+        dropdownContent.appendChild(title);
+        dropdownContent.appendChild(paragraph);
+
+        // Navigation container for page switching
+        const navContainer = document.createElement('div');
+        navContainer.style.textAlign = 'center';
+
+        if (pageIndex > 0) {
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = 'Previous';
+            prevBtn.onclick = () => { renderPage(pageIndex - 1); };
+            navContainer.appendChild(prevBtn);
+        }
+
+        // Update the condition to reflect the new total number of pages
+        if (pageIndex < 3 - 1) { // Now assuming 3 pages
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Next';
+            nextBtn.onclick = () => { renderPage(pageIndex + 1); };
+            navContainer.appendChild(nextBtn);
+        }
+
+        dropdownContent.appendChild(navContainer);
+    }
+
+    if (infoIcon && dropdownContent) {
+        infoIcon.addEventListener('click', function() {
+            dropdownContent.classList.toggle('show');
+            if (dropdownContent.classList.contains('show') && !dropdownContent.hasChildNodes()) {
+                renderPage(0); // Initially render the first page
+            }
+        });
+    }
+}
+
+// Function to send game action to the server
+function sendGameAction(action, boardState) {
+    const sessionId = new URLSearchParams(window.location.search).get('session');
+    console.log('-----------Sending Game Action to server--------------');
+    console.log(action);
+    console.log('Board State:', boardState);
+    console.log('------------------------------------------------------');
+
+    if (sessionId) {
+        const serializedSprites = chessPieceSprites.map(sprite => ({
+            type: sprite.type,
+            x: sprite.x,
+            y: sprite.y,
+            id: sprite.data.list.id,
+            color: sprite.data.list.color,
+            row: sprite.data.list.row,
+            col: sprite.data.list.col
+        }));
+
+
+        const data = { sessionId, boardState, serializedSprites, action };
+        console.log('Serialized Data:', data);
+
+
+        socket.emit('updateBoardState', data);
+    } else {
+        console.error('Session ID is missing, cannot send action');
+    }
+}
+
+function sendBuy(data) {
+    const sessionId = new URLSearchParams(window.location.search).get('session');
+    console.log('-----------Sending Buy to server--------------');
+    console.log(data);
+    console.log('------------------------------------------------------');
+
+
+
+
+    if (sessionId) {
+        socket.emit('buy', data);
+        } else {
+            console.error('Session ID is missing, cannot send action');
+            }
+}
+
+// Function to handle the received data and update the sprites (Not Used)
+function repaint(boardState, chessPieceSpritesData) {
+    console.log('---------------------Repainting with new Data---------------------------');
+
+    // Clear all current pieces from the canvas
+    chessPieceSprites.forEach(sprite => {
+        if (sprite && typeof sprite.destroy === 'function') {
+            sprite.destroy();
+        }
+    });
+    chessPieceSprites = [];
+
+    // Iterate through the chessPieceSpritesData to create and position each piece correctly
+    chessPieceSpritesData.forEach(spriteData => {
+        if (spriteData.type && spriteData.type !== 'empty' && spriteData.color) {
+            // Calculate the position based on the received x and y coordinates
+            const x = spriteData.x;
+            const y = spriteData.y;
+
+            // Create a new sprite for the piece
+            let spriteName = spriteData.type.charAt(0).toUpperCase() + spriteData.type.slice(1) + '_' + spriteData.color.charAt(0).toUpperCase() + spriteData.color.slice(1);
+            const sprite = gameScene.add.sprite(x, y, spriteName);
+
+            // Set the properties of the sprite
+            sprite.type = spriteData.type;
+            sprite.data = new Phaser.Data.DataManager(sprite);
+            sprite.setInteractive();
+            sprite.data.set('id', spriteData.id);
+            sprite.data.set('color', spriteData.color);
+            sprite.data.set('row', spriteData.row);
+            sprite.data.set('col', spriteData.col);
+
+            // Add the sprite to the array
+            chessPieceSprites.push(sprite);
+
+            // Enable dragging for the new sprite
+            gameScene.input.setDraggable(sprite);
+        } 
+    });
+
+    // Update the boardState based on the chessPieceSpritesData
+    boardState.forEach(row => row.fill({ type: 'empty', color: '' })); // Reset boardState
+    console.log('---------------------Logging GameScene Object-------------------------')
+    console.log(gameScene)
+    console.log('-----------------------------------------------------------')
+    
+    chessPieceSpritesData.forEach(spriteData => {
+        if (spriteData.row !== undefined && spriteData.col !== undefined) {
+            boardState[spriteData.row][spriteData.col] = {
+                type: spriteData.type,
+                color: spriteData.color,
+                x: spriteData.x,
+                y: spriteData.y
+            };
+        }
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     addInfoPanel()
@@ -1224,184 +1463,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 handleStartTurn();
             }
         });
+
+        socket.on('restartBoard', () => {
+            console.log('Restarting Game!!')
+        })
         
     } else {
         console.error('No session ID provided.');
     }
 });
-
-function addInfoPanel() {
-    const infoIcon = document.querySelector('.info-icon');
-    const dropdownContent = document.querySelector('.dropdown-content');
-
-    function renderPage(pageIndex) {
-        dropdownContent.innerHTML = ''; // Clear previous content
-
-        const title = document.createElement('h3');
-        const paragraph = document.createElement('p');
-        
-        // Dynamically set the content based on the pageIndex
-        switch (pageIndex) {
-            case 0:
-                title.textContent = "How do you Win?";
-                paragraph.innerHTML = "Get 20 victory points! <br><br> + Earn 1 victory point for every Yellow square you control<br><br> + Controling a square means one of your pieces are on it at the begining of your turn";
-                break;
-            case 1:
-                title.textContent = "Buying Pieces?";
-                paragraph.innerHTML = "+ Earn 0.5 coins for every green square you control.<br><br>" +  "+ Buy a piece from the shop to the right!<br><br>" + "+ Each piece costs as much as its corresponding chess value.";
-                break;
-            case 2: // New Page
-                title.textContent = "Moving and Capturing";
-                paragraph.innerHTML = "+ All legal chess moves are allowed except casteling and en-pacent. <br><br>+ no points or coins are awarded for captures, but that may change in a future update.";
-                break;
-            default:
-                title.textContent = "Page Title Not Found";
-                paragraph.textContent = "No additional content available.";
-                break;
-        }
-
-        dropdownContent.appendChild(title);
-        dropdownContent.appendChild(paragraph);
-
-        // Navigation container for page switching
-        const navContainer = document.createElement('div');
-        navContainer.style.textAlign = 'center';
-
-        if (pageIndex > 0) {
-            const prevBtn = document.createElement('button');
-            prevBtn.textContent = 'Previous';
-            prevBtn.onclick = () => { renderPage(pageIndex - 1); };
-            navContainer.appendChild(prevBtn);
-        }
-
-        // Update the condition to reflect the new total number of pages
-        if (pageIndex < 3 - 1) { // Now assuming 3 pages
-            const nextBtn = document.createElement('button');
-            nextBtn.textContent = 'Next';
-            nextBtn.onclick = () => { renderPage(pageIndex + 1); };
-            navContainer.appendChild(nextBtn);
-        }
-
-        dropdownContent.appendChild(navContainer);
-    }
-
-    if (infoIcon && dropdownContent) {
-        infoIcon.addEventListener('click', function() {
-            dropdownContent.classList.toggle('show');
-            if (dropdownContent.classList.contains('show') && !dropdownContent.hasChildNodes()) {
-                renderPage(0); // Initially render the first page
-            }
-        });
-    }
-}
-
-// Function to send game action to the server
-function sendGameAction(action, boardState) {
-    const sessionId = new URLSearchParams(window.location.search).get('session');
-    console.log('-----------Sending Game Action to server--------------');
-    console.log(action);
-    console.log('Board State:', boardState);
-    console.log('------------------------------------------------------');
-
-    if (sessionId) {
-        const serializedSprites = chessPieceSprites.map(sprite => ({
-            type: sprite.type,
-            x: sprite.x,
-            y: sprite.y,
-            id: sprite.data.list.id,
-            color: sprite.data.list.color,
-            row: sprite.data.list.row,
-            col: sprite.data.list.col
-        }));
-
-
-        const data = { sessionId, boardState, serializedSprites, action };
-        console.log('Serialized Data:', data);
-
-
-        socket.emit('updateBoardState', data);
-    } else {
-        console.error('Session ID is missing, cannot send action');
-    }
-}
-
-function sendBuy(data) {
-    const sessionId = new URLSearchParams(window.location.search).get('session');
-    console.log('-----------Sending Buy to server--------------');
-    console.log(data);
-    console.log('------------------------------------------------------');
-
-
-
-
-    if (sessionId) {
-        socket.emit('buy', data);
-        } else {
-            console.error('Session ID is missing, cannot send action');
-            }
-}
-
-
-
-
-// Function to handle the received data and update the sprites
-function repaint(boardState, chessPieceSpritesData) {
-    console.log('---------------------Repainting with new Data---------------------------');
-
-    // Clear all current pieces from the canvas
-    chessPieceSprites.forEach(sprite => {
-        if (sprite && typeof sprite.destroy === 'function') {
-            sprite.destroy();
-        }
-    });
-    chessPieceSprites = [];
-
-    // Iterate through the chessPieceSpritesData to create and position each piece correctly
-    chessPieceSpritesData.forEach(spriteData => {
-        if (spriteData.type && spriteData.type !== 'empty' && spriteData.color) {
-            // Calculate the position based on the received x and y coordinates
-            const x = spriteData.x;
-            const y = spriteData.y;
-
-            // Create a new sprite for the piece
-            let spriteName = spriteData.type.charAt(0).toUpperCase() + spriteData.type.slice(1) + '_' + spriteData.color.charAt(0).toUpperCase() + spriteData.color.slice(1);
-            const sprite = gameScene.add.sprite(x, y, spriteName);
-
-            // Set the properties of the sprite
-            sprite.type = spriteData.type;
-            sprite.data = new Phaser.Data.DataManager(sprite);
-            sprite.setInteractive();
-            sprite.data.set('id', spriteData.id);
-            sprite.data.set('color', spriteData.color);
-            sprite.data.set('row', spriteData.row);
-            sprite.data.set('col', spriteData.col);
-
-            // Add the sprite to the array
-            chessPieceSprites.push(sprite);
-
-            // Enable dragging for the new sprite
-            gameScene.input.setDraggable(sprite);
-        } 
-    });
-
-    // Update the boardState based on the chessPieceSpritesData
-    boardState.forEach(row => row.fill({ type: 'empty', color: '' })); // Reset boardState
-    console.log('---------------------Logging GameScene Object-------------------------')
-    console.log(gameScene)
-    console.log('-----------------------------------------------------------')
-    
-    chessPieceSpritesData.forEach(spriteData => {
-        if (spriteData.row !== undefined && spriteData.col !== undefined) {
-            boardState[spriteData.row][spriteData.col] = {
-                type: spriteData.type,
-                color: spriteData.color,
-                x: spriteData.x,
-                y: spriteData.y
-            };
-        }
-    });
-}
-
-
 
 

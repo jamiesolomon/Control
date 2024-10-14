@@ -123,6 +123,14 @@ io.on('connection', (socket) => {
         io.to(sessionId).emit('updateUI', { action });
         
     })
+
+    socket.on('restartGame', (sessionId) => {
+        const session = sessions[sessionId]
+
+        io.to(sessionId).emit('restartBoard')
+
+
+    })
     
 
     socket.on('disconnect', () => {
