@@ -2,8 +2,8 @@
 
 // const e = require("express");
 
-// const scale = Math.min(window.innerWidth / (1536*0.8), window.innerHeight / (2304*0.8));
-const scale = 0.4
+const scale = Math.min(window.innerWidth / (1536*.9), window.innerHeight / (2304*.9));
+//const scale = 0.4
 
 const squareSize = 192 * scale
 const greenVal = 0.5
