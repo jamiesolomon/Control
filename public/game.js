@@ -183,8 +183,11 @@ function create() {
         }
 
         if (gameObject.length != 0) {
-            selectedPiece = gameObject[0];
-            highlightValidMoves(selectedPiece);
+            if(gameObject[0].color == playerColor) {
+                console.log(selectedPiece)
+                selectedPiece = gameObject[0];
+                highlightValidMoves(selectedPiece);
+            }
         }
     });
 
@@ -230,8 +233,10 @@ function create() {
         }
 
         if (gameObject.length != 0) {
-            selectedPiece = gameObject[0];
-            highlightValidMoves(selectedPiece);
+            if(gameObject.color == playerColor) {
+                selectedPiece = gameObject[0];
+                highlightValidMoves(selectedPiece);
+            }
         }
     });
 
