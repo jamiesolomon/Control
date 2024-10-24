@@ -92,10 +92,12 @@ game.data.boardState = null
 
 function preload() {
     this.load.image('board', 'assets/ControlBoard_8x12.png'); 
-    this.load.audio('moveSound', 'assets/moveSoundEffect.mp3'); // Add this line to load the sound file
+    
 
     const pieceTypes = ['pawn', 'bishop', 'knight', 'rook', 'queen', 'king'];
     const colors = ['white', 'black'];
+
+    this.load.audio('moveSound', 'assets/moveSoundEffect.mp3'); // Add this line to load the sound file
 
     for (const color of colors) {
         for (const type of pieceTypes) {
