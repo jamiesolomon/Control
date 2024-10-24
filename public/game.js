@@ -867,7 +867,6 @@ function buyBackPiece(player, piece) {
             // gameScene.data.boardState[row][col] = piece
             // boardState[row][col] = piece
             updateBuybackUI(gameScene, piece); 
-            
             return true; 
         } else {
             // ... Handle not enough coins 
@@ -989,8 +988,6 @@ function updateBuybackUI(scene, piece) {
     chessPieceSprites.push(sprite); 
     pieceIds.push(spriteName)
     boardState = gameScene.data.boardState
-    // Play the move sound
-    gameScene.sound.play('moveSound'); // Add this line to play the sound
     //console.log(boardState)
 
 }
